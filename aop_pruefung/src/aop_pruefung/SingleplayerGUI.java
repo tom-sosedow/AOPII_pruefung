@@ -10,17 +10,13 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
-
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
@@ -29,16 +25,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class SingleplayerGUI extends JFrame {
 
 	private JPanel contentPane, panel1, panel2, panel3;
-	private JLabel lblCat, lblA1, lblA2, lblB1, lblB2, lblC1, lblC2, lblD1, lblD2, lblStatus1, lblStatus2, lblFrage1, lblFrage2, lblPunktestand, lblScore;
+	private JLabel lblCat, lblA1, lblA2, lblB1, lblB2, lblC1, lblC2, lblD1, lblD2, lblStatus1, lblStatus2, lblStatus, lblFrage1, lblFrage2, lblPunktestand, lblScore;
 	private JRadioButton rdbtnA1, rdbtnA2, rdbtnB1, rdbtnB2, rdbtnC1, rdbtnC2, rdbtnD1, rdbtnD2;
 	private JSplitPane splitPaneA1, splitPaneA2, splitPaneB1, splitPaneB2, splitPaneC1, splitPaneC2, splitPaneD1, splitPaneD2;
 	private JButton btnAccept1;
@@ -49,25 +42,26 @@ public class SingleplayerGUI extends JFrame {
 	private File pfad, actFile;
 	private Map<String, String[]> kategorie = new HashMap<>();
 	private Vector<File> dateien = new Vector<File>();
-	private JComboBox<File> jcb;
+	private JComboBox<File> jcbPopup; 
+	private JComboBox jcbDiff;
 	private String[] keys;
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
 	private Random random = new Random();
-	private float diff = 1.0f;
+	private float diff;
+	private String[] diffs = {"Leicht", "Mittel", "Schwer", "Dr. Kawashima"};
 	
 	
 	public SingleplayerGUI(File pfad) {
 		this.pfad = pfad;
-		initGUI();
+		initGUI();	
 		ls = this.pfad.listFiles(new FileFilter() {
 			public boolean accept(File f) {
 					return f.isFile();}});
 		
 		if (ls != null && ls.length != 0) 
 			for(int i = 0; i< ls.length; i++) 
-				dateien.add(ls[i]);
-		
+				dateien.add(ls[i]);	
 	}
 	
 	/**
@@ -113,50 +107,63 @@ public class SingleplayerGUI extends JFrame {
 	
 	
 	public void spielen() {
+		
 		Runnable spielen = new Runnable() {
 			@Override public void run() {
 				try {
-					selectCat(); //Kategorie wählen
-					keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
-					refreshQ(random.nextInt(keys.length)); //random Frage wählen
-					auswahlBot(diff);
-					bereit.acquire();
-					
-					refreshQ(random.nextInt(keys.length));
-					bg1.clearSelection();
-					bg2.clearSelection();
-					auswahlBot(diff);
-					bereit.acquire();
-					
-					refreshQ(random.nextInt(keys.length));
-					bg1.clearSelection();
-					bg2.clearSelection();
-					auswahlBot(diff);
-					bereit.acquire();
-					
-					actFile = dateien.elementAt(random.nextInt(dateien.size()));
-					readFile(actFile);
-					keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
-					refreshQ(random.nextInt(keys.length));
-					bg1.clearSelection();
-					bg2.clearSelection();
-					auswahlBot(diff);
-					bereit.acquire();
+					//3 Runden
+					for(int a = 0; a < 3; a++) {
+						selectCat(); //Kategorie wählen
+						keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
+						
+						//3 Fragen 
+						for(int i = 0; i<3; i++) {
+							askQ();
+							bereit.acquire();
+						}
+						
+						//Bot wählt Kategorie
+						actFile = dateien.elementAt(random.nextInt(dateien.size()));
+						readFile(actFile);
+						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
+						
+						//nächste 3 fragen mit neuer Kategorie
+						for(int i = 0; i<3; i++) {
+							askQ();
+							bereit.acquire();
+						}
+					}
+					if(spieler1.getPunkte() > spieler2.getPunkte())
+						lblStatus.setText("Spieler 1 gewinnt.");
+					else if(spieler1.getPunkte() < spieler2.getPunkte())
+						lblStatus.setText("Spieler 2 gewinnt.");
+					else
+						lblStatus.setText("Gleichstand! Was für ein Spiel!");
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
-				
 			}
 		};
 		new Thread(spielen).start();
 	}
+	private void askQ() {
+		refreshQ(random.nextInt(keys.length));
+		bg1.clearSelection();
+		bg2.clearSelection();
+		auswahlBot(diff);
+	}
+	
 	private void selectCat() {
-		JOptionPane.showMessageDialog( null, jcb, "Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
-		actFile = dateien.elementAt(jcb.getSelectedIndex());
-		lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
-		readFile(actFile);
+		JOptionPane.showMessageDialog( null, jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
+		if(jcbPopup.getSelectedIndex() != -1) {
+			actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
+			lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
+			readFile(actFile);
+		}
+		else {
+			this.dispose();
+		}
+		
 	}
 	private void refreshQ(int z) {
 		lblFrage1.setText(keys[z]);
@@ -176,7 +183,7 @@ public class SingleplayerGUI extends JFrame {
 		String rAntwort = kategorie.get(lblFrage1.getText())[4];
 		String[] ABCD = {"A", "B", "C", "D"};
 		int temp = 0;
-		float schranke = (i*0.2f)+0.2f;
+		float schranke = (i*0.15f)+0.2f;
 		float temp2 = random.nextFloat();
 		if(temp2<schranke) {
 			if(rAntwort.equals("A")) {
@@ -205,15 +212,19 @@ public class SingleplayerGUI extends JFrame {
 				case 0:
 					rdbtnA2.setSelected(true);
 					spieler2.setAuswahl("A");
+					break;
 				case 1:
 					rdbtnB2.setSelected(true);
 					spieler2.setAuswahl("B");
+					break;
 				case 2:
 					rdbtnC2.setSelected(true);
 					spieler2.setAuswahl("C");
+					break;
 				case 3:
 					rdbtnD2.setSelected(true);
 					spieler2.setAuswahl("D");
+					break;
 			}
 		}
 	}
@@ -300,6 +311,10 @@ public class SingleplayerGUI extends JFrame {
 		lblScore = new JLabel("0:0");
 		lblScore.setHorizontalAlignment(SwingConstants.CENTER);
 		panel2.add(lblScore);
+		
+		lblStatus = new JLabel("");
+		lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
+		panel2.add(lblStatus);
 	}
 	
 	private void initPanel3() {
@@ -435,7 +450,12 @@ public class SingleplayerGUI extends JFrame {
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
 		
-		jcb = new JComboBox<File>(dateien);
+		jcbPopup = new JComboBox<File>(dateien);
+		
+		String[] diffs = {"Leicht", "Mittel", "Schwer", "Dr. Kawashima"};
+		jcbDiff = new JComboBox<String>(diffs);
+		JOptionPane.showMessageDialog( null, jcbDiff, "Wähle eine Schwierigkeitsstufe", JOptionPane.QUESTION_MESSAGE);
+		diff = jcbDiff.getSelectedIndex();
 		try {
 			bereit.acquire();
 		} catch (InterruptedException e) {
