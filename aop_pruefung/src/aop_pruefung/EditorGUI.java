@@ -34,7 +34,7 @@ public class EditorGUI extends JFrame {
 
 	private JPanel contentPane;
 	Map<String, String[]> kategorie = new HashMap<>();
-	File pfad, actFile, datei;
+	File pfad = null, actFile;
 	File[] ls = null;
 	JPanel panel;
 	JLabel lblFragen, lblrAntwort, lblA, lblB, lblC, lblD;
@@ -44,111 +44,29 @@ public class EditorGUI extends JFrame {
 	String[] ABCD = {"A", "B", "C", "D"};
 	JTextArea textArea_B,textArea_A, textArea_C, textArea_D, textArea_Frage;
 	JScrollPane scrollPane;
-	Vector<File> dateien = new Vector<File>();
+	Vector<File> dateien;
 	DefaultListModel<String> model = new DefaultListModel<String>();
 	JList<String> list = new JList<String>( model );
 	int modus = 0;
 	
+	/**
+	 * @wbp.parser.constructor
+	 */
+	public EditorGUI(Vector<File> files) {
+		this.dateien = files;
+		initGUI();
+	}
+	/**
+	 * @wbp.parser.constructor
+	 */
+	/**
+	 * @wbp.parser.constructor
+	 */
+
 	public EditorGUI(File pfad) {
 		this.pfad = pfad;
-		setTitle("Editor");
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 875, 551);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
-		setContentPane(contentPane);
-		
-		panel = new JPanel();
-		contentPane.add(panel, BorderLayout.CENTER);
-		panel.setLayout(null);
-		
-		lblFragen = new JLabel("Fragen:");
-		lblFragen.setBounds(27, 50, 46, 14);
-		panel.add(lblFragen);
-		
-		textArea_B = new JTextArea();
-		textArea_B.setText("Antwort 2");
-		textArea_B.setBounds(599, 134, 240, 48);
-		panel.add(textArea_B);
-		
-		textArea_A = new JTextArea();
-		textArea_A.setText("Antwort 1");
-		textArea_A.setBounds(599, 75, 240, 48);
-		panel.add(textArea_A);
-		
-		textArea_C = new JTextArea();
-		textArea_C.setText("Antwort 3");
-		textArea_C.setBounds(599, 193, 240, 48);
-		panel.add(textArea_C);
-		
-		textArea_D = new JTextArea();
-		textArea_D.setText("Antwort 4");
-		textArea_D.setBounds(599, 252, 240, 48);
-		panel.add(textArea_D);
-		
-		comboBox_rAntwort = new JComboBox<Object>(ABCD);
-		comboBox_rAntwort.setBounds(558, 341, 121, 22);
-		panel.add(comboBox_rAntwort);
-		
-		lblrAntwort = new JLabel("Richtige Antwort:");
-		lblrAntwort.setBounds(558, 320, 121, 14);
-		panel.add(lblrAntwort);
-		
-		lblA = new JLabel("A:");
-		lblA.setBounds(558, 80, 31, 14);
-		panel.add(lblA);
-		
-		lblB = new JLabel("B:");
-		lblB.setBounds(558, 139, 31, 14);
-		panel.add(lblB);
-		
-		lblC = new JLabel("C:");
-		lblC.setBounds(558, 198, 31, 14);
-		panel.add(lblC);
-		
-		lblD = new JLabel("D:");
-		lblD.setBounds(558, 257, 31, 14);
-		panel.add(lblD);
-		
-		textArea_Frage = new JTextArea();
-		textArea_Frage.setBounds(558, 10, 281, 56);
-		textArea_Frage.setText("(Frage)");
-		panel.add(textArea_Frage);
-		
-		list.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				aktualisieren();
-			}
-		});
-		
-		scrollPane = new JScrollPane();
-		scrollPane.setBounds(27, 75, 500, 334);
-		panel.add(scrollPane);
-		scrollPane.setViewportView(list);
-		
-		btnSave = new JButton("Datei speichern");
-		btnSave.addActionListener(e -> saveFile());
-		btnSave.setBounds(390, 11, 137, 23);
-		panel.add(btnSave);
-		
-		
-		btnAddQ = new JButton("Frage hinzufügen");
-		btnAddQ.addActionListener(e -> addQ());
-		btnAddQ.setBounds(27, 448, 168, 23);
-		panel.add(btnAddQ);
-
-		btnAccept = new JButton("Bestätigen");
-		btnAccept.setBounds(698, 341, 121, 23);
-		btnAccept.addActionListener(e -> modifyQ());
-		panel.add(btnAccept);
-		
-		btnDelete = new JButton("Frage löschen");
-		btnDelete.addActionListener(e -> deleteQ());
-		btnDelete.setBounds(359, 448, 168, 23);
-		panel.add(btnDelete);
-		
+		dateien = new Vector<File>();
+		initGUI();
 		ls = this.pfad.listFiles(new FileFilter() {
 			public boolean accept(File f) {
 					return f.isFile();}});
@@ -156,18 +74,9 @@ public class EditorGUI extends JFrame {
 		if (ls != null && ls.length != 0) 
 			for(int i = 0; i< ls.length; i++) 
 				dateien.add(ls[i]);
-				
-		comboBox = new JComboBox<File>(dateien);
-		comboBox.addActionListener(e -> selectFile());
-		comboBox.setBounds(27, 11, 353, 22);
-		panel.add(comboBox);
-		
-		btnNewCategory = new JButton("Neue Kategorie");
-		btnNewCategory.addActionListener(e -> newCategory());
-		btnNewCategory.setBounds(390, 46, 137, 23);
-		panel.add(btnNewCategory);
 		
 	}
+	
 	private void saveFile() {
 		try {
 			OutputStream ostream = new FileOutputStream(actFile);
@@ -237,30 +146,38 @@ public class EditorGUI extends JFrame {
 	}
 	
 	private void newCategory() {
-		String path = JOptionPane.showInputDialog("Gib den Namen der neuen Kategorie ein:");
-		String test = pfad.toString()+"\\"+path+".txt";
-		if(path != null) {
-			datei = new File(pfad.toString()+"\\"+path+".txt");
+		String name = JOptionPane.showInputDialog("Gib den Namen der neuen Kategorie ein:");
+		File datei;
+		if(name != null) {
+			if(pfad == null)
+				datei = new File(dateien.elementAt(0).getAbsolutePath()+"\\"+name+".txt");
+			else
+				datei = new File(pfad.toString()+"\\"+name+".txt");
 			try {
 				datei.createNewFile();
+				comboBox.addItem(datei);
+				comboBox.setSelectedItem(datei);
+				dateien.add(datei);
+				readFile(datei);
+				selectFile();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			comboBox.addItem(datei);
-			comboBox.setSelectedItem(datei);
-			readFile(datei);
-			selectFile();
 		}
-		
-		
 	}
 	private void aktualisieren() {
-		textArea_Frage.setText((String) list.getSelectedValue());
-		textArea_A.setText(kategorie.get(list.getSelectedValue())[0]);
-		textArea_B.setText(kategorie.get(list.getSelectedValue())[1]);
-		textArea_C.setText(kategorie.get(list.getSelectedValue())[2]);
-		textArea_D.setText(kategorie.get(list.getSelectedValue())[3]);
-		comboBox_rAntwort.setSelectedItem(kategorie.get(list.getSelectedValue())[4]);
+		try {
+			textArea_Frage.setText((String) list.getSelectedValue());
+			textArea_A.setText(kategorie.get(list.getSelectedValue())[0]);
+			textArea_B.setText(kategorie.get(list.getSelectedValue())[1]);
+			textArea_C.setText(kategorie.get(list.getSelectedValue())[2]);
+			textArea_D.setText(kategorie.get(list.getSelectedValue())[3]);
+			comboBox_rAntwort.setSelectedItem(kategorie.get(list.getSelectedValue())[4]);
+		}
+		catch(NullPointerException e) {
+			
+		}
+		
 	}
 	public boolean readFile(File datei) {		
 	    try {
@@ -315,5 +232,116 @@ public class EditorGUI extends JFrame {
 				}
 		    }
 		    i = false;
+	}
+	
+	private void initGUI() {
+		setTitle("Editor");
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setBounds(100, 100, 875, 551);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setLayout(new BorderLayout(0, 0));
+		setContentPane(contentPane);
+		
+		panel = new JPanel();
+		contentPane.add(panel, BorderLayout.CENTER);
+		panel.setLayout(null);
+		
+		lblFragen = new JLabel("Fragen:");
+		lblFragen.setBounds(27, 50, 46, 14);
+		panel.add(lblFragen);
+		
+		textArea_B = new JTextArea();
+		textArea_B.setText("Antwort 2");
+		textArea_B.setBounds(599, 134, 240, 48);
+		panel.add(textArea_B);
+		
+		textArea_A = new JTextArea();
+		textArea_A.setText("Antwort 1");
+		textArea_A.setBounds(599, 75, 240, 48);
+		panel.add(textArea_A);
+		
+		textArea_C = new JTextArea();
+		textArea_C.setText("Antwort 3");
+		textArea_C.setBounds(599, 193, 240, 48);
+		panel.add(textArea_C);
+		
+		textArea_D = new JTextArea();
+		textArea_D.setText("Antwort 4");
+		textArea_D.setBounds(599, 252, 240, 48);
+		panel.add(textArea_D);
+		
+		comboBox_rAntwort = new JComboBox<String>(ABCD);
+		comboBox_rAntwort.setBounds(558, 341, 121, 22);
+		panel.add(comboBox_rAntwort);
+		
+		lblrAntwort = new JLabel("Richtige Antwort:");
+		lblrAntwort.setBounds(558, 320, 121, 14);
+		panel.add(lblrAntwort);
+		
+		lblA = new JLabel("A:");
+		lblA.setBounds(558, 80, 31, 14);
+		panel.add(lblA);
+		
+		lblB = new JLabel("B:");
+		lblB.setBounds(558, 139, 31, 14);
+		panel.add(lblB);
+		
+		lblC = new JLabel("C:");
+		lblC.setBounds(558, 198, 31, 14);
+		panel.add(lblC);
+		
+		lblD = new JLabel("D:");
+		lblD.setBounds(558, 257, 31, 14);
+		panel.add(lblD);
+		
+		textArea_Frage = new JTextArea();
+		textArea_Frage.setBounds(558, 10, 281, 56);
+		textArea_Frage.setText("(Frage)");
+		panel.add(textArea_Frage);
+		
+		list.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				aktualisieren();
+			}
+		});
+		
+		scrollPane = new JScrollPane();
+		scrollPane.setBounds(27, 75, 500, 334);
+		panel.add(scrollPane);
+		scrollPane.setViewportView(list);
+		
+		btnSave = new JButton("Datei speichern");
+		btnSave.addActionListener(e -> saveFile());
+		btnSave.setBounds(390, 11, 137, 23);
+		panel.add(btnSave);
+		
+		btnAddQ = new JButton("Frage hinzufügen");
+		btnAddQ.addActionListener(e -> addQ());
+		btnAddQ.setBounds(27, 448, 168, 23);
+		panel.add(btnAddQ);
+
+		btnAccept = new JButton("Bestätigen");
+		btnAccept.setBounds(698, 341, 121, 23);
+		btnAccept.addActionListener(e -> modifyQ());
+		panel.add(btnAccept);
+		
+		btnDelete = new JButton("Frage löschen");
+		btnDelete.addActionListener(e -> deleteQ());
+		btnDelete.setBounds(359, 448, 168, 23);
+		panel.add(btnDelete);
+				
+		comboBox = new JComboBox<File>(dateien);
+		comboBox.addActionListener(e -> selectFile());
+		comboBox.setBounds(27, 11, 353, 22);
+		panel.add(comboBox);
+		
+		btnNewCategory = new JButton("Neue Kategorie");
+		btnNewCategory.addActionListener(e -> newCategory());
+		btnNewCategory.setBounds(390, 46, 137, 23);
+		panel.add(btnNewCategory);
+		
+		
 	}
 }

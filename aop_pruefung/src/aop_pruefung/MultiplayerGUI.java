@@ -54,36 +54,7 @@ public class MultiplayerGUI extends JFrame {
 	
 	public MultiplayerGUI(File pfad) {
 		this.pfad = pfad;
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 905, 503);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		gbl_contentPane = new GridBagLayout();
-		gbl_contentPane.columnWidths = new int[]{290, 290, 290, 0};
-		gbl_contentPane.rowHeights = new int[]{454, 0};
-		gbl_contentPane.columnWeights = new double[]{1.0, 1.0, 1.0, Double.MIN_VALUE};
-		gbl_contentPane.rowWeights = new double[]{1.0, Double.MIN_VALUE};
-		contentPane.setLayout(gbl_contentPane);
-		
-		initPanel1();
-		initPanel2();
-		initPanel3();
-		
-		spieler1 = new Spieler(1);
-		spieler2 = new Spieler(2);
-		
-		bg1 = new ButtonGroup();
-		bg2 = new ButtonGroup();
-		bg1.add(rdbtnA1);
-		bg1.add(rdbtnB1);
-		bg1.add(rdbtnC1);
-		bg1.add(rdbtnD1);
-		bg2.add(rdbtnA2);
-		bg2.add(rdbtnB2);
-		bg2.add(rdbtnC2);
-		bg2.add(rdbtnD2);
-		
+		initGUI();
 		ls = this.pfad.listFiles(new FileFilter() {
 			public boolean accept(File f) {
 					return f.isFile();}});
@@ -92,6 +63,11 @@ public class MultiplayerGUI extends JFrame {
 			for(int i = 0; i< ls.length; i++) 
 				dateien.add(ls[i]);
 		
+		jcb = new JComboBox<File>(dateien);
+	}
+	public MultiplayerGUI(Vector<File> files) {
+		this.dateien = files;
+		initGUI();
 		jcb = new JComboBox<File>(dateien);
 	}
 	
@@ -337,5 +313,37 @@ public class MultiplayerGUI extends JFrame {
 	    	e.printStackTrace();
 	    	return false;
 	    }
+	}
+	
+	private void initGUI() {
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setBounds(100, 100, 905, 503);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		gbl_contentPane = new GridBagLayout();
+		gbl_contentPane.columnWidths = new int[]{290, 290, 290, 0};
+		gbl_contentPane.rowHeights = new int[]{454, 0};
+		gbl_contentPane.columnWeights = new double[]{1.0, 1.0, 1.0, Double.MIN_VALUE};
+		gbl_contentPane.rowWeights = new double[]{1.0, Double.MIN_VALUE};
+		contentPane.setLayout(gbl_contentPane);
+		
+		initPanel1();
+		initPanel2();
+		initPanel3();
+		
+		spieler1 = new Spieler(1);
+		spieler2 = new Spieler(2);
+		
+		bg1 = new ButtonGroup();
+		bg2 = new ButtonGroup();
+		bg1.add(rdbtnA1);
+		bg1.add(rdbtnB1);
+		bg1.add(rdbtnC1);
+		bg1.add(rdbtnD1);
+		bg2.add(rdbtnA2);
+		bg2.add(rdbtnB2);
+		bg2.add(rdbtnC2);
+		bg2.add(rdbtnD2);
 	}
 }
