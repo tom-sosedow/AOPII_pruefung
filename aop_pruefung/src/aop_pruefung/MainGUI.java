@@ -51,6 +51,7 @@ public class MainGUI extends JFrame {
 		panel.setLayout(null);
 		
 		btnEinzelspieler = new JButton("Einzelspieler (vs. COM)");
+		btnEinzelspieler.addActionListener(e-> multiplayerMode());
 		btnEinzelspieler.setBounds(322, 56, 183, 30);
 		panel.add(btnEinzelspieler);
 		
@@ -80,15 +81,23 @@ public class MainGUI extends JFrame {
 			multiplayer = new MultiplayerGUI(pfad);
 			multiplayer.setVisible(true);
 			multiplayer.spielen();
-			
 		}
 		else {
-			lblPfad.setText("Bitte erst den Pfad zu den Kategorien auswählen!");
-			
-		}
-		
-		
+			lblPfad.setText("Bitte erst den Pfad zu den Kategorien auswählen!");	
+		}	
 	}
+	private void singleplayerMode() {
+		SingleplayerGUI singleplayer;
+		if(pfad != null) {
+			singleplayer = new SingleplayerGUI(pfad);
+			singleplayer.setVisible(true);
+			singleplayer.spielen();
+		}
+		else {
+			lblPfad.setText("Bitte erst den Pfad zu den Kategorien auswählen!");	
+		}
+	}
+	
 	private void editorMode() {
 		if(pfad != null) {
 			EditorGUI editor = new EditorGUI(pfad);

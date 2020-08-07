@@ -34,13 +34,13 @@ import javax.swing.JRadioButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-public class MultiplayerGUI extends JFrame {
+public class SingleplayerGUI extends JFrame {
 
 	private JPanel contentPane, panel1, panel2, panel3;
 	private JLabel lblCat, lblA1, lblA2, lblB1, lblB2, lblC1, lblC2, lblD1, lblD2, lblStatus1, lblStatus2, lblFrage1, lblFrage2, lblPunktestand, lblScore;
 	private JRadioButton rdbtnA1, rdbtnA2, rdbtnB1, rdbtnB2, rdbtnC1, rdbtnC2, rdbtnD1, rdbtnD2;
 	private JSplitPane splitPaneA1, splitPaneA2, splitPaneB1, splitPaneB2, splitPaneC1, splitPaneC2, splitPaneD1, splitPaneD2;
-	private JButton btnAccept1, btnAccept2;
+	private JButton btnAccept1;
 	private GridBagLayout gbl_contentPane;
 	private GridBagConstraints gbc_panel1, gbc_panel2, gbc_panel3;
 	private ButtonGroup bg1, bg2;
@@ -52,7 +52,7 @@ public class MultiplayerGUI extends JFrame {
 	private String[] keys;
 	private Spieler spieler1, spieler2;
 	
-	public MultiplayerGUI(File pfad) {
+	public SingleplayerGUI(File pfad) {
 		this.pfad = pfad;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 905, 503);
@@ -95,24 +95,14 @@ public class MultiplayerGUI extends JFrame {
 		jcb = new JComboBox<File>(dateien);
 	}
 	
-	private void accept(int i) {
-		if (i == 1) {
-			if(spieler1.getAuswahl().equals(kategorie.get(lblFrage1.getText())[4])) {
-				spieler1.setPunkte(spieler1.getPunkte()+1);
-				lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
-				lblStatus1.setText("Richtig!");
-			}
-			else {
-				lblStatus1.setText("Leider falsch!");
-			}
-		}
-		else if(spieler2.getAuswahl().equals(kategorie.get(lblFrage2.getText())[4])) {
-				spieler2.setPunkte(spieler2.getPunkte()+1);
-				lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
-				lblStatus2.setText("Richtig!");	
+	private void accept() {
+		if(spieler1.getAuswahl().equals(kategorie.get(lblFrage1.getText())[4])) {
+			spieler1.setPunkte(spieler1.getPunkte()+1);
+			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
+			lblStatus1.setText("Richtig!");
 		}
 		else {
-			lblStatus2.setText("Leider falsch!");
+			lblStatus1.setText("Leider falsch!");
 		}
 	}		
 	
@@ -120,36 +110,33 @@ public class MultiplayerGUI extends JFrame {
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	    executor.schedule(() -> {
 	      selectCat(1);
-	    }, 3, TimeUnit.SECONDS);
-		
-		keys = kategorie.keySet().toArray(new String[kategorie.size()]);
-		refreshQ(1);
-		
-		refreshQ(2);
-
+	    }, 1, TimeUnit.SECONDS);
+		keys = kategorie.keySet().toArray(new String[kategorie.size()]);	
+		Random random = new Random();
+		int z = random.nextInt(keys.length+1);
+		refreshQ(z);
+		executor.schedule(() -> {
+		      actFile = dateien.elementAt(random.nextInt(dateien.size()+1));
+		      readFile(actFile);
+		    }, 5, TimeUnit.SECONDS);
 	}
 	private void selectCat(int i) {
 		JOptionPane.showMessageDialog( null, jcb, "Spieler" + i + ": Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
 		actFile = dateien.elementAt(jcb.getSelectedIndex());
 		readFile(actFile);
 	}
-	private void refreshQ(int i) {
-		Random random = new Random();
-		int z = random.nextInt(keys.length+1);
-		if(i == 1) {
+	private void refreshQ(int z) {
 			lblFrage1.setText(keys[z]);
 			rdbtnA1.setText(kategorie.get(keys[z])[0]);
 			rdbtnB1.setText(kategorie.get(keys[z])[1]);
 			rdbtnC1.setText(kategorie.get(keys[z])[2]);
 			rdbtnD1.setText(kategorie.get(keys[z])[3]);
-		}
-		else {
+
 			lblFrage2.setText(keys[z]);
 			rdbtnA2.setText(kategorie.get(keys[z])[0]);
 			rdbtnB2.setText(kategorie.get(keys[z])[1]);
 			rdbtnC2.setText(kategorie.get(keys[z])[2]);
 			rdbtnD2.setText(kategorie.get(keys[z])[3]);
-		}
 		
 	}
 	private void initPanel1() {
@@ -206,7 +193,7 @@ public class MultiplayerGUI extends JFrame {
 		rdbtnD1.addActionListener(e -> spieler1.setAuswahl("D"));
 		
 		btnAccept1 = new JButton("Bestaetigen");
-		btnAccept1.addActionListener(e-> accept(1));
+		btnAccept1.addActionListener(e-> accept());
 		panel1.add(btnAccept1);
 		
 		lblStatus1 = new JLabel("");
@@ -289,12 +276,12 @@ public class MultiplayerGUI extends JFrame {
 		rdbtnD2.addActionListener(e -> spieler2.setAuswahl("D"));
 		splitPaneD2.setRightComponent(rdbtnD2);
 		
-		btnAccept2 = new JButton("Bestaetigen");
-		btnAccept2.addActionListener(e-> accept(2));
-		panel3.add(btnAccept2);
-		
 		lblStatus2 = new JLabel("");
 		panel3.add(lblStatus2);
+		rdbtnA2.setEnabled(false);
+		rdbtnB2.setEnabled(false);
+		rdbtnC2.setEnabled(false);
+		rdbtnD2.setEnabled(false);
 	}
 	
 	public boolean readFile(File datei) {		
