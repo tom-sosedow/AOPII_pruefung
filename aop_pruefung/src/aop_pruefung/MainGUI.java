@@ -56,7 +56,7 @@ public class MainGUI extends JFrame {
 		panel.setLayout(null);
 		
 		btnEinzelspieler = new JButton("Einzelspieler (vs. COM)");
-		btnEinzelspieler.addActionListener(e-> multiplayerMode());
+		btnEinzelspieler.addActionListener(e-> singleplayerMode());
 		btnEinzelspieler.setBounds(322, 56, 183, 30);
 		panel.add(btnEinzelspieler);
 		
@@ -98,6 +98,11 @@ public class MainGUI extends JFrame {
 		MultiplayerGUI multiplayer;
 		if(dateien != null) {
 			multiplayer = new MultiplayerGUI(dateien);
+			multiplayer.setVisible(true);
+			multiplayer.spielen();
+		}
+		else if(pfad != null) {
+			multiplayer = new MultiplayerGUI(pfad);
 			multiplayer.setVisible(true);
 			multiplayer.spielen();
 		}

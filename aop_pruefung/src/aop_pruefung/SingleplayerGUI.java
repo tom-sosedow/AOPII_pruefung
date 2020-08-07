@@ -27,6 +27,7 @@ import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.SwingConstants;
@@ -51,6 +52,8 @@ public class SingleplayerGUI extends JFrame {
 	private JComboBox<File> jcb;
 	private String[] keys;
 	private Spieler spieler1, spieler2;
+	private Semaphore bereit = new Semaphore(1, true);
+	
 	
 	public SingleplayerGUI(File pfad) {
 		this.pfad = pfad;
@@ -64,8 +67,17 @@ public class SingleplayerGUI extends JFrame {
 				dateien.add(ls[i]);
 		
 		jcb = new JComboBox<File>(dateien);
+		try {
+			bereit.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
+	/**
+	 * @wbp.parser.constructor
+	 */
 	public SingleplayerGUI(Vector<File> files) {
 		this.dateien = files;
 		initGUI();
@@ -81,25 +93,35 @@ public class SingleplayerGUI extends JFrame {
 		else {
 			lblStatus1.setText("Leider falsch!");
 		}
+		bereit.release();
 	}		
 	
 	public void spielen() {
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	    executor.schedule(() -> {
-	      selectCat(1);
-	    }, 1, TimeUnit.SECONDS);
-		keys = kategorie.keySet().toArray(new String[kategorie.size()]);	
 		Random random = new Random();
-		int z = random.nextInt(keys.length+1);
-		refreshQ(z);
-		executor.schedule(() -> {
-		      actFile = dateien.elementAt(random.nextInt(dateien.size()+1));
-		      readFile(actFile);
-		    }, 5, TimeUnit.SECONDS);
+		selectCat(); //Kategorie wählen
+		keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
+		refreshQ(random.nextInt(keys.length+1)); //random Frage wählen
+		try {
+			bereit.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		refreshQ(random.nextInt(keys.length+1));
+		
+	    //bot wählt Kategorie + einlesen
+		//executor.schedule(() -> {
+		System.out.println("Fire");
+	    actFile = dateien.elementAt(random.nextInt(dateien.size()+1));
+	    readFile(actFile);
+		//}, 6, TimeUnit.SECONDS);
 	}
-	private void selectCat(int i) {
-		JOptionPane.showMessageDialog( null, jcb, "Spieler" + i + ": Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
+	private void selectCat() {
+		JOptionPane.showMessageDialog( null, jcb, "Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
 		actFile = dateien.elementAt(jcb.getSelectedIndex());
+		lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 		readFile(actFile);
 	}
 	private void refreshQ(int z) {
@@ -192,7 +214,7 @@ public class SingleplayerGUI extends JFrame {
 		lblCat.setHorizontalAlignment(SwingConstants.CENTER);
 		panel2.add(lblCat);
 		
-		lblPunktestand = new JLabel("New label");
+		lblPunktestand = new JLabel("0:0");
 		lblPunktestand.setHorizontalAlignment(SwingConstants.CENTER);
 		panel2.add(lblPunktestand);
 		
