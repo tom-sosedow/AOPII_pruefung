@@ -53,6 +53,8 @@ public class SingleplayerGUI extends JFrame {
 	private String[] keys;
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
+	private Random random = new Random();
+	private float diff = 1.0f;
 	
 	
 	public SingleplayerGUI(File pfad) {
@@ -66,13 +68,6 @@ public class SingleplayerGUI extends JFrame {
 			for(int i = 0; i< ls.length; i++) 
 				dateien.add(ls[i]);
 		
-		jcb = new JComboBox<File>(dateien);
-		try {
-			bereit.acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -81,42 +76,81 @@ public class SingleplayerGUI extends JFrame {
 	public SingleplayerGUI(Vector<File> files) {
 		this.dateien = files;
 		initGUI();
-		jcb = new JComboBox<File>(dateien);
 	}
 	
 	private void accept() {
+		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		if(spieler1.getAuswahl().equals(kategorie.get(lblFrage1.getText())[4])) {
 			spieler1.setPunkte(spieler1.getPunkte()+1);
 			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
-			lblStatus1.setText("Richtig!");
+			lblStatus1.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
+			executor.schedule(() -> {
+				lblStatus1.setText("Richtig!");
+		    }, 2, TimeUnit.SECONDS);
 		}
 		else {
-			lblStatus1.setText("Leider falsch!");
+			lblStatus1.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
+			executor.schedule(() -> {
+				lblStatus1.setText("Leider falsch!");
+		    }, 2, TimeUnit.SECONDS);
+		}
+		if(spieler2.getAuswahl().equals(kategorie.get(lblFrage2.getText())[4])) {
+			spieler2.setPunkte(spieler2.getPunkte()+1);
+			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
+			lblStatus2.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
+			executor.schedule(() -> {
+				lblStatus2.setText("Richtig!");
+		    }, 2, TimeUnit.SECONDS);
+		}
+		else {
+			lblStatus2.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
+			executor.schedule(() -> {
+				lblStatus2.setText("Leider falsch!");
+		    }, 2, TimeUnit.SECONDS);
 		}
 		bereit.release();
-	}		
+	}
+	
 	
 	public void spielen() {
-		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		Random random = new Random();
-		selectCat(); //Kategorie wählen
-		keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
-		refreshQ(random.nextInt(keys.length+1)); //random Frage wählen
-		try {
-			bereit.acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		refreshQ(random.nextInt(keys.length+1));
-		
-	    //bot wählt Kategorie + einlesen
-		//executor.schedule(() -> {
-		System.out.println("Fire");
-	    actFile = dateien.elementAt(random.nextInt(dateien.size()+1));
-	    readFile(actFile);
-		//}, 6, TimeUnit.SECONDS);
+		Runnable spielen = new Runnable() {
+			@Override public void run() {
+				try {
+					selectCat(); //Kategorie wählen
+					keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
+					refreshQ(random.nextInt(keys.length)); //random Frage wählen
+					auswahlBot(diff);
+					bereit.acquire();
+					
+					refreshQ(random.nextInt(keys.length));
+					bg1.clearSelection();
+					bg2.clearSelection();
+					auswahlBot(diff);
+					bereit.acquire();
+					
+					refreshQ(random.nextInt(keys.length));
+					bg1.clearSelection();
+					bg2.clearSelection();
+					auswahlBot(diff);
+					bereit.acquire();
+					
+					actFile = dateien.elementAt(random.nextInt(dateien.size()));
+					readFile(actFile);
+					keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
+					refreshQ(random.nextInt(keys.length));
+					bg1.clearSelection();
+					bg2.clearSelection();
+					auswahlBot(diff);
+					bereit.acquire();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
+			}
+		};
+		new Thread(spielen).start();
 	}
 	private void selectCat() {
 		JOptionPane.showMessageDialog( null, jcb, "Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
@@ -125,18 +159,63 @@ public class SingleplayerGUI extends JFrame {
 		readFile(actFile);
 	}
 	private void refreshQ(int z) {
-			lblFrage1.setText(keys[z]);
-			rdbtnA1.setText(kategorie.get(keys[z])[0]);
-			rdbtnB1.setText(kategorie.get(keys[z])[1]);
-			rdbtnC1.setText(kategorie.get(keys[z])[2]);
-			rdbtnD1.setText(kategorie.get(keys[z])[3]);
+		lblFrage1.setText(keys[z]);
+		rdbtnA1.setText(kategorie.get(keys[z])[0]);
+		rdbtnB1.setText(kategorie.get(keys[z])[1]);
+		rdbtnC1.setText(kategorie.get(keys[z])[2]);
+		rdbtnD1.setText(kategorie.get(keys[z])[3]);
 
-			lblFrage2.setText(keys[z]);
-			rdbtnA2.setText(kategorie.get(keys[z])[0]);
-			rdbtnB2.setText(kategorie.get(keys[z])[1]);
-			rdbtnC2.setText(kategorie.get(keys[z])[2]);
-			rdbtnD2.setText(kategorie.get(keys[z])[3]);
+		lblFrage2.setText(keys[z]);
+		rdbtnA2.setText(kategorie.get(keys[z])[0]);
+		rdbtnB2.setText(kategorie.get(keys[z])[1]);
+		rdbtnC2.setText(kategorie.get(keys[z])[2]);
+		rdbtnD2.setText(kategorie.get(keys[z])[3]);
 		
+	}
+	private void auswahlBot(float i) {
+		String rAntwort = kategorie.get(lblFrage1.getText())[4];
+		String[] ABCD = {"A", "B", "C", "D"};
+		int temp = 0;
+		float schranke = (i*0.2f)+0.2f;
+		float temp2 = random.nextFloat();
+		if(temp2<schranke) {
+			if(rAntwort.equals("A")) {
+				rdbtnA2.setSelected(true);
+				spieler2.setAuswahl("A");
+			}
+			else if(rAntwort.equals("B")) {
+				rdbtnB2.setSelected(true);
+				spieler2.setAuswahl("B");
+			}
+			else if(rAntwort.equals("C")) {
+				rdbtnC2.setSelected(true);
+				spieler2.setAuswahl("C");
+			}
+			else if(rAntwort.equals("D")) {
+				rdbtnD2.setSelected(true);
+				spieler2.setAuswahl("D");
+			}
+		}
+		else {
+			temp = random.nextInt(4);
+			while(rAntwort.equals(ABCD[temp])) {
+				temp = random.nextInt(4);
+			}
+			switch(temp){
+				case 0:
+					rdbtnA2.setSelected(true);
+					spieler2.setAuswahl("A");
+				case 1:
+					rdbtnB2.setSelected(true);
+					spieler2.setAuswahl("B");
+				case 2:
+					rdbtnC2.setSelected(true);
+					spieler2.setAuswahl("C");
+				case 3:
+					rdbtnD2.setSelected(true);
+					spieler2.setAuswahl("D");
+			}
+		}
 	}
 	private void initPanel1() {
 		panel1 = new JPanel();
@@ -214,7 +293,7 @@ public class SingleplayerGUI extends JFrame {
 		lblCat.setHorizontalAlignment(SwingConstants.CENTER);
 		panel2.add(lblCat);
 		
-		lblPunktestand = new JLabel("0:0");
+		lblPunktestand = new JLabel("Punktestand:");
 		lblPunktestand.setHorizontalAlignment(SwingConstants.CENTER);
 		panel2.add(lblPunktestand);
 		
@@ -355,5 +434,13 @@ public class SingleplayerGUI extends JFrame {
 		bg2.add(rdbtnB2);
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
+		
+		jcb = new JComboBox<File>(dateien);
+		try {
+			bereit.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
