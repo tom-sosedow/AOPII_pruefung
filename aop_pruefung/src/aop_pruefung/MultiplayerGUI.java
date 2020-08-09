@@ -10,34 +10,28 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
-
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class MultiplayerGUI extends JFrame {
 
 	private JPanel contentPane, panel1, panel2, panel3;
-	private JLabel lblCat, lblA1, lblA2, lblB1, lblB2, lblC1, lblC2, lblD1, lblD2, lblStatus1, lblStatus2, lblFrage1, lblFrage2, lblPunktestand, lblScore;
+	private JLabel lblCat, lblA1, lblA2, lblB1, lblB2, lblC1, lblC2, lblD1, lblD2, lblStatus1, lblStatus2, lblStatus, lblFrage1, lblFrage2, lblPunktestand, lblScore;
 	private JRadioButton rdbtnA1, rdbtnA2, rdbtnB1, rdbtnB2, rdbtnC1, rdbtnC2, rdbtnD1, rdbtnD2;
 	private JSplitPane splitPaneA1, splitPaneA2, splitPaneB1, splitPaneB2, splitPaneC1, splitPaneC2, splitPaneD1, splitPaneD2;
 	private JButton btnAccept1, btnAccept2;
@@ -48,86 +42,189 @@ public class MultiplayerGUI extends JFrame {
 	private File pfad, actFile;
 	private Map<String, String[]> kategorie = new HashMap<>();
 	private Vector<File> dateien = new Vector<File>();
-	private JComboBox<File> jcb;
+	private JComboBox<File> jcbPopup; 
 	private String[] keys;
 	private Spieler spieler1, spieler2;
+	private Semaphore bereit = new Semaphore(1, true);
+	private Random random = new Random();
+	
 	
 	public MultiplayerGUI(File pfad) {
 		this.pfad = pfad;
-		initGUI();
+		initGUI();	
 		ls = this.pfad.listFiles(new FileFilter() {
 			public boolean accept(File f) {
 					return f.isFile();}});
 		
 		if (ls != null && ls.length != 0) 
 			for(int i = 0; i< ls.length; i++) 
-				dateien.add(ls[i]);
-		
-		jcb = new JComboBox<File>(dateien);
+				dateien.add(ls[i]);	
 	}
+	
+	/**
+	 * @wbp.parser.constructor
+	 */
 	public MultiplayerGUI(Vector<File> files) {
 		this.dateien = files;
 		initGUI();
-		jcb = new JComboBox<File>(dateien);
 	}
 	
 	private void accept(int i) {
+		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		if (i == 1) {
+			if(!spieler1.getAuswahl().equals("")) {
+				spieler1.setBereit(true);
+				lblStatus1.setText("Warte auf Spieler 2");
+				changeRdbtnState(1, false);
+			}
+			else {
+				lblStatus1.setText("Bitte wähle zuerst eine Antwort!");
+				return;
+			}
+			
+		}
+		else {
+			if(!spieler2.getAuswahl().equals("")) {
+				spieler2.setBereit(true);
+				lblStatus2.setText("Warte auf Spieler 1");
+				changeRdbtnState(2, false);
+			}
+			else {
+				lblStatus2.setText("Bitte wähle zuerst eine Antwort!");
+				return;
+			}
+		}
+		if(spieler1.getBereit() && spieler2.getBereit()) {
 			if(spieler1.getAuswahl().equals(kategorie.get(lblFrage1.getText())[4])) {
 				spieler1.setPunkte(spieler1.getPunkte()+1);
 				lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
-				lblStatus1.setText("Richtig!");
+				lblStatus1.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
+				executor.schedule(() -> {
+					lblStatus1.setText("Richtig!");
+			    }, 2, TimeUnit.SECONDS);
 			}
 			else {
-				lblStatus1.setText("Leider falsch!");
+				lblStatus1.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
+				executor.schedule(() -> {
+					lblStatus1.setText("Leider falsch!");
+			    }, 2, TimeUnit.SECONDS);
 			}
-		}
-		else if(spieler2.getAuswahl().equals(kategorie.get(lblFrage2.getText())[4])) {
+			if(spieler2.getAuswahl().equals(kategorie.get(lblFrage2.getText())[4])) {
 				spieler2.setPunkte(spieler2.getPunkte()+1);
 				lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
-				lblStatus2.setText("Richtig!");	
+				lblStatus2.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
+				executor.schedule(() -> {
+					lblStatus2.setText("Richtig!");
+			    }, 2, TimeUnit.SECONDS);
+			}
+			else {
+				lblStatus2.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
+				executor.schedule(() -> {
+					lblStatus2.setText("Leider falsch!");
+			    }, 2, TimeUnit.SECONDS);
+			}
+			spieler1.setBereit(false);
+			spieler2.setBereit(false);
+			spieler1.setAuswahl("");
+			spieler2.setAuswahl("");
+			changeRdbtnState(1, true);
+			changeRdbtnState(2, true);
+			bereit.release();
+		}
+		
+	}
+	
+	private void changeRdbtnState(int i, Boolean b) {
+		if (i == 1) {
+			rdbtnA1.setEnabled(b);
+			rdbtnB1.setEnabled(b);
+			rdbtnC1.setEnabled(b);
+			rdbtnD1.setEnabled(b);
 		}
 		else {
-			lblStatus2.setText("Leider falsch!");
+			rdbtnA2.setEnabled(b);
+			rdbtnB2.setEnabled(b);
+			rdbtnC2.setEnabled(b);
+			rdbtnD2.setEnabled(b);
 		}
-	}		
+	}
 	
 	public void spielen() {
-		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	    executor.schedule(() -> {
-	      selectCat(1);
-	    }, 3, TimeUnit.SECONDS);
 		
-		keys = kategorie.keySet().toArray(new String[kategorie.size()]);
-		refreshQ(1);
-		
-		refreshQ(2);
-
+		Runnable spielen = new Runnable() {
+			@Override public void run() {
+				try {
+					//3 Runden
+					for(int a = 0; a < 3; a++) {
+						selectCat(1); //Kategorie wählen
+						keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
+						
+						//3 Fragen 
+						for(int i = 0; i<3; i++) {
+							askQ();
+							bereit.acquire();
+						}
+						
+						//Bot wählt Kategorie
+						selectCat(2);
+						
+						//nächste 3 fragen mit neuer Kategorie
+						for(int i = 0; i<3; i++) {
+							askQ();
+							bereit.acquire();
+						}
+					}
+					if(spieler1.getPunkte() > spieler2.getPunkte())
+						lblStatus.setText("Spieler 1 gewinnt.");
+					else if(spieler1.getPunkte() < spieler2.getPunkte())
+						lblStatus.setText("Spieler 2 gewinnt.");
+					else
+						lblStatus.setText("Gleichstand! Was für ein Spiel!");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		new Thread(spielen).start();
 	}
+	private void askQ() {
+		try {
+			TimeUnit.SECONDS.sleep(3);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		refreshQ(random.nextInt(keys.length));
+		bg1.clearSelection();
+		bg2.clearSelection();
+	}
+	
 	private void selectCat(int i) {
-		JOptionPane.showMessageDialog( null, jcb, "Spieler" + i + ": Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
-		actFile = dateien.elementAt(jcb.getSelectedIndex());
-		readFile(actFile);
-	}
-	private void refreshQ(int i) {
-		Random random = new Random();
-		int z = random.nextInt(keys.length+1);
-		if(i == 1) {
-			lblFrage1.setText(keys[z]);
-			rdbtnA1.setText(kategorie.get(keys[z])[0]);
-			rdbtnB1.setText(kategorie.get(keys[z])[1]);
-			rdbtnC1.setText(kategorie.get(keys[z])[2]);
-			rdbtnD1.setText(kategorie.get(keys[z])[3]);
+		JOptionPane.showMessageDialog( null, jcbPopup,"Spieler " + i + ": Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
+		if(jcbPopup.getSelectedIndex() != -1) {
+			actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
+			lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
+			readFile(actFile);
 		}
 		else {
-			lblFrage2.setText(keys[z]);
-			rdbtnA2.setText(kategorie.get(keys[z])[0]);
-			rdbtnB2.setText(kategorie.get(keys[z])[1]);
-			rdbtnC2.setText(kategorie.get(keys[z])[2]);
-			rdbtnD2.setText(kategorie.get(keys[z])[3]);
+			this.dispose();
 		}
 		
 	}
+	private void refreshQ(int z) {
+		lblFrage1.setText(keys[z]);
+		rdbtnA1.setText(kategorie.get(keys[z])[0]);
+		rdbtnB1.setText(kategorie.get(keys[z])[1]);
+		rdbtnC1.setText(kategorie.get(keys[z])[2]);
+		rdbtnD1.setText(kategorie.get(keys[z])[3]);
+
+		lblFrage2.setText(keys[z]);
+		rdbtnA2.setText(kategorie.get(keys[z])[0]);
+		rdbtnB2.setText(kategorie.get(keys[z])[1]);
+		rdbtnC2.setText(kategorie.get(keys[z])[2]);
+		rdbtnD2.setText(kategorie.get(keys[z])[3]);
+		
+	}
+	
 	private void initPanel1() {
 		panel1 = new JPanel();
 		gbc_panel1 = new GridBagConstraints();
@@ -204,13 +301,17 @@ public class MultiplayerGUI extends JFrame {
 		lblCat.setHorizontalAlignment(SwingConstants.CENTER);
 		panel2.add(lblCat);
 		
-		lblPunktestand = new JLabel("New label");
+		lblPunktestand = new JLabel("Punktestand:");
 		lblPunktestand.setHorizontalAlignment(SwingConstants.CENTER);
 		panel2.add(lblPunktestand);
 		
 		lblScore = new JLabel("0:0");
 		lblScore.setHorizontalAlignment(SwingConstants.CENTER);
 		panel2.add(lblScore);
+		
+		lblStatus = new JLabel("");
+		lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
+		panel2.add(lblStatus);
 	}
 	
 	private void initPanel3() {
@@ -345,5 +446,13 @@ public class MultiplayerGUI extends JFrame {
 		bg2.add(rdbtnB2);
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
+		
+		jcbPopup = new JComboBox<File>(dateien);
+		try {
+			bereit.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
