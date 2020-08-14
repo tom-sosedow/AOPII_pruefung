@@ -4,10 +4,17 @@ public class Spieler {
 	private int nummer, punkte;
 	private String auswahl;
 	private Boolean bereit = false;
+	
+	/**
+	 * Legt einen Spieler mit Nummer {@code nummer} an und setzt Punkte auf 0
+	 * @param nummer
+	 */
 	public Spieler(int nummer) {
 		this.nummer = nummer;
 		this.punkte = 0;
 	}
+	
+	//Getter und Setter
 	public int getNummer() {
 		return nummer;
 	}

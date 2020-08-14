@@ -33,36 +33,37 @@ import java.awt.event.MouseEvent;
 public class EditorGUI extends JFrame {
 
 	private JPanel contentPane;
-	Map<String, String[]> kategorie = new HashMap<>();
-	File pfad = null, actFile;
-	File[] ls = null;
-	JPanel panel;
-	JLabel lblFragen, lblrAntwort, lblA, lblB, lblC, lblD;
-	JButton btnSave, btnAddQ, btnAccept, btnDelete, btnNewCategory;
-	JComboBox<File> comboBox;
-	JComboBox<?> comboBox_rAntwort;
-	String[] ABCD = {"A", "B", "C", "D"};
-	JTextArea textArea_B,textArea_A, textArea_C, textArea_D, textArea_Frage;
-	JScrollPane scrollPane;
-	Vector<File> dateien;
-	DefaultListModel<String> model = new DefaultListModel<String>();
-	JList<String> list = new JList<String>( model );
-	int modus = 0;
+	private Map<String, String[]> kategorie = new HashMap<>();
+	private File pfad = null, actFile;
+	private File[] ls = null;
+	private JPanel panel;
+	private JLabel lblFragen, lblrAntwort, lblA, lblB, lblC, lblD;
+	private JButton btnSave, btnAddQ, btnAccept, btnDelete, btnNewCategory;
+	private JComboBox<File> comboBox;
+	private JComboBox<?> comboBox_rAntwort;
+	private String[] ABCD = {"A", "B", "C", "D"};
+	private JTextArea textArea_B,textArea_A, textArea_C, textArea_D, textArea_Frage;
+	private JScrollPane scrollPane;
+	private Vector<File> dateien;
+	private DefaultListModel<String> model = new DefaultListModel<String>();
+	private JList<String> list = new JList<String>( model );
+	private int modus = 0;
 	
 	/**
+	 * Initialisiert das Fenster und nutzt dabei den übergebenen Vektor (Files)
+	 * @param dateien Vektor mit den File-Daten
 	 * @wbp.parser.constructor
 	 */
 	public EditorGUI(Vector<File> files) {
 		this.dateien = files;
 		initGUI();
 	}
+	
 	/**
-	 * @wbp.parser.constructor
+	 * Initialisiert das Fenster und liest alle Dateien aus dem übergebenen Ordner ein.
+	 * 
+	 * @param pfad Verzeichnis, in dem die Dateien liegen
 	 */
-	/**
-	 * @wbp.parser.constructor
-	 */
-
 	public EditorGUI(File pfad) {
 		this.pfad = pfad;
 		dateien = new Vector<File>();
@@ -77,6 +78,9 @@ public class EditorGUI extends JFrame {
 		
 	}
 	
+	/**
+	 * Speichert die Kategorie im richtigen Format in die aktuelle Datei
+	 */
 	private void saveFile() {
 		try {
 			OutputStream ostream = new FileOutputStream(actFile);
@@ -96,6 +100,11 @@ public class EditorGUI extends JFrame {
 		}
 	}
 	
+	/**
+	 * Leert die Felder für Frage+Antworten+richtige Antwort. 
+	 * Die nächste Speicherung einer Frage wird eine neue Frage zur Datenbank hinzufügen
+	 * 
+	 */
 	private void addQ(){
 		if(modus == 0) {
 			btnAddQ.setText("Abbrechen");
@@ -115,6 +124,10 @@ public class EditorGUI extends JFrame {
 		}
 	}
 	
+	/**
+	 * Die Frage/Antworten der aktuell gewählten Frage werden aktualisiert bzw. eine neue Frage hinzugefügt, falls vorher entsprechender
+	 * Button betätigt wurde.
+	 */
 	private void modifyQ() {
 		String[] temp = {textArea_A.getText(), textArea_B.getText(), textArea_C.getText(), textArea_D.getText(), (String) comboBox_rAntwort.getSelectedItem()};
 		String key = list.getSelectedValue();
@@ -138,6 +151,9 @@ public class EditorGUI extends JFrame {
 		btnAddQ.setText("Frage hinzufuegen");
 	}
 	
+	/**
+	 * Entfernt die gewählte Frage aus der Datenbank, sofern sie enthalten ist.
+	 */
 	private void deleteQ() {
 		if(kategorie.containsKey(list.getSelectedValue())) {
 			  kategorie.remove(textArea_Frage.getText());
@@ -145,6 +161,10 @@ public class EditorGUI extends JFrame {
 		  }
 	}
 	
+	/**
+	 * Öffnet ein Fenster, in dem der Name einer neuen Kategorie eingegeben werden kann.
+	 * Wird im Verzeichnis/dem Verzeichnis der gewählten Dateien eine neue Datei mit diesem Namen erstellen.
+	 */
 	private void newCategory() {
 		String name = JOptionPane.showInputDialog("Gib den Namen der neuen Kategorie ein:");
 		File datei;
@@ -165,6 +185,10 @@ public class EditorGUI extends JFrame {
 			}
 		}
 	}
+	
+	/**
+	 * Aktualisiert die Frage/Antwort-Felder mit den Informationen aus der Datenbank von der gewählten Frage
+	 */
 	private void aktualisieren() {
 		try {
 			textArea_Frage.setText((String) list.getSelectedValue());
@@ -179,6 +203,12 @@ public class EditorGUI extends JFrame {
 		}
 		
 	}
+	
+	/**
+	 * Liest die Datei {@code datei} in die Datenbank ein
+	 * @param datei
+	 * @return true, falls Einlesen erfolgreich; false sonst
+	 */
 	public boolean readFile(File datei) {		
 	    try {
 			Scanner scanner = new Scanner(datei);
@@ -221,19 +251,31 @@ public class EditorGUI extends JFrame {
 	    }
 	}
 	
+	/**
+	 * Probiert, die gewählte Datei in die Datenbank einzulesen.
+	 * Falls erfolgreich, wird die Anzeige der Fragen mit den neuen Frage erneuert
+	 */
 	private void selectFile() {
-		actFile = dateien.elementAt(comboBox.getSelectedIndex());
+		File temp = dateien.elementAt(comboBox.getSelectedIndex());
 		kategorie.clear();
-		boolean i = readFile(actFile);
+		boolean i = readFile(temp);
 		    if(i) {
+		    	actFile = temp;
 		    	model.clear();
 			    for (Map.Entry<String, String[]> a : kategorie.entrySet()) {
 			    	model.addElement(a.getKey());
 				}
 		    }
+		    else {
+		    	readFile(actFile);
+		    }
 		    i = false;
 	}
 	
+	/**
+	 * Initialisiert die Oberfläche:
+	 * Erstellt alle Buttons, Textfelder, Label, das Frame und die Liste zur Anzeige der Fragen aus der Datenbank
+	 */
 	private void initGUI() {
 		setTitle("Editor");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

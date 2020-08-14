@@ -42,13 +42,18 @@ public class MultiplayerGUI extends JFrame {
 	private File pfad, actFile;
 	private Map<String, String[]> kategorie = new HashMap<>();
 	private Vector<File> dateien = new Vector<File>();
+	private Vector<Integer> fragen = new Vector<Integer>();
 	private JComboBox<File> jcbPopup; 
 	private String[] keys;
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
 	private Random random = new Random();
 	
-	
+	/**
+	 * Initialisiert das Fenster und liest alle Dateien aus dem übergebenen Ordner ein.
+	 * 
+	 * @param pfad Verzeichnis, in dem die Dateien liegen
+	 */
 	public MultiplayerGUI(File pfad) {
 		this.pfad = pfad;
 		initGUI();	
@@ -62,6 +67,8 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
+	 * Initialisiert das Fenster und nutzt dabei den übergebenen Vektor (Files)
+	 * @param dateien Vektor mit den File-Daten
 	 * @wbp.parser.constructor
 	 */
 	public MultiplayerGUI(Vector<File> files) {
@@ -69,8 +76,16 @@ public class MultiplayerGUI extends JFrame {
 		initGUI();
 	}
 	
+	/**
+	 * Loggt die Auswahl des Spielers {@code i} ein (falls sie nicht leer ist) wenn der Spieler Bestätigen drückt und setzt ihn auf "Bereit".
+	 * Wenn beide Spieler bereit sind, also ihre Antworten eingeloggt haben, werden die Antworten ausgewertet, entsprechend 
+	 * Punkte verteilt und der Startzustand für die nächste Fragerunde hergestellt.
+	 * 
+	 * @param i Nummer des Spielers der akzeptiert
+	 */
 	private void accept(int i) {
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+		//Entscheidung ob Warten auf anderen Spieler nötig
 		if (i == 1) {
 			if(!spieler1.getAuswahl().equals("")) {
 				spieler1.setBereit(true);
@@ -81,7 +96,6 @@ public class MultiplayerGUI extends JFrame {
 				lblStatus1.setText("Bitte wähle zuerst eine Antwort!");
 				return;
 			}
-			
 		}
 		else {
 			if(!spieler2.getAuswahl().equals("")) {
@@ -94,6 +108,7 @@ public class MultiplayerGUI extends JFrame {
 				return;
 			}
 		}
+		//Wenn beide Spieler bereit: Punkte aktualisieren, richtige Antwort anzeigen und Ausgangszustand für nächste Fragerunde herstellen
 		if(spieler1.getBereit() && spieler2.getBereit()) {
 			if(spieler1.getAuswahl().equals(kategorie.get(lblFrage1.getText())[4])) {
 				spieler1.setPunkte(spieler1.getPunkte()+1);
@@ -101,13 +116,13 @@ public class MultiplayerGUI extends JFrame {
 				lblStatus1.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 				executor.schedule(() -> {
 					lblStatus1.setText("Richtig!");
-			    }, 2, TimeUnit.SECONDS);
+			    }, 3, TimeUnit.SECONDS);
 			}
 			else {
 				lblStatus1.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 				executor.schedule(() -> {
 					lblStatus1.setText("Leider falsch!");
-			    }, 2, TimeUnit.SECONDS);
+			    }, 3, TimeUnit.SECONDS);
 			}
 			if(spieler2.getAuswahl().equals(kategorie.get(lblFrage2.getText())[4])) {
 				spieler2.setPunkte(spieler2.getPunkte()+1);
@@ -115,13 +130,13 @@ public class MultiplayerGUI extends JFrame {
 				lblStatus2.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 				executor.schedule(() -> {
 					lblStatus2.setText("Richtig!");
-			    }, 2, TimeUnit.SECONDS);
+			    }, 3, TimeUnit.SECONDS);
 			}
 			else {
 				lblStatus2.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 				executor.schedule(() -> {
 					lblStatus2.setText("Leider falsch!");
-			    }, 2, TimeUnit.SECONDS);
+			    }, 3, TimeUnit.SECONDS);
 			}
 			spieler1.setBereit(false);
 			spieler2.setBereit(false);
@@ -134,6 +149,11 @@ public class MultiplayerGUI extends JFrame {
 		
 	}
 	
+	/**
+	 * Aktiviert(b=true) bzw. deaktiviert (b=false) die Möglichkeit des Sspielers i, eine Auswahl in seiner Buttongroup zu tätigen
+	 * @param i Spielernummer
+	 * @param b gewünschter Status der Buttons (Boolean)
+	 */
 	private void changeRdbtnState(int i, Boolean b) {
 		if (i == 1) {
 			rdbtnA1.setEnabled(b);
@@ -149,8 +169,11 @@ public class MultiplayerGUI extends JFrame {
 		}
 	}
 	
+	/**
+	 * Spielablauf wird hier durchgegangen entsprechend der Spielregeln. Startet dafür einen neuen Thread damit mithilfe 
+	 * von Semaphores auf Spielereingaben gewartet werden kann.
+	 */
 	public void spielen() {
-		
 		Runnable spielen = new Runnable() {
 			@Override public void run() {
 				try {
@@ -158,15 +181,14 @@ public class MultiplayerGUI extends JFrame {
 					for(int a = 0; a < 3; a++) {
 						selectCat(1); //Kategorie wählen
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
-						
-						//3 Fragen 
-						for(int i = 0; i<3; i++) {
+						refreshQ(); //erste Frage
+						bereit.acquire(); //warten auf Antwort
+						//2 Fragen 
+						for(int i = 0; i<2; i++) {
 							askQ();
 							bereit.acquire();
 						}
-						
-						//Bot wählt Kategorie
-						selectCat(2);
+						selectCat(2); //Bot wählt Kategorie
 						
 						//nächste 3 fragen mit neuer Kategorie
 						for(int i = 0; i<3; i++) {
@@ -187,17 +209,27 @@ public class MultiplayerGUI extends JFrame {
 		};
 		new Thread(spielen).start();
 	}
+	
+	/**
+	 * Zeigt richtige Antwort der letzten Frage an, wartet und stellt die neue Frage, nachdem die vorherigen Auswahlen geleert werden.
+	 */
 	private void askQ() {
+		lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(lblFrage1.getText())[4] + "!");
 		try {
 			TimeUnit.SECONDS.sleep(3);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		refreshQ(random.nextInt(keys.length));
+		lblStatus.setText("");
+		refreshQ();
 		bg1.clearSelection();
 		bg2.clearSelection();
 	}
 	
+	/**
+	 * Öffnet ein fenster, in dem Spieler {@code i} eine Kategorie auswählen soll.
+	 * @param i Spielernummer
+	 */
 	private void selectCat(int i) {
 		JOptionPane.showMessageDialog( null, jcbPopup,"Spieler " + i + ": Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
 		if(jcbPopup.getSelectedIndex() != -1) {
@@ -207,10 +239,19 @@ public class MultiplayerGUI extends JFrame {
 		}
 		else {
 			this.dispose();
-		}
-		
+		}	
 	}
-	private void refreshQ(int z) {
+	
+	/**
+	 * Wählt eine zufällige nächste Frage (die noch nicht gestellt wurde) und zeigt 
+	 * sie mit den Antwortmöglichkeiten in allen entsprechenden Feldern an
+	 */
+	private void refreshQ() {
+		int z;
+		do{
+			z = random.nextInt(keys.length);
+		}while(fragen.contains(z));
+		fragen.add(z);
 		lblFrage1.setText(keys[z]);
 		rdbtnA1.setText(kategorie.get(keys[z])[0]);
 		rdbtnB1.setText(kategorie.get(keys[z])[1]);
@@ -225,6 +266,16 @@ public class MultiplayerGUI extends JFrame {
 		
 	}
 	
+	/**
+	 * Initialisiert das rechte Panel für Spieler 1
+	 * JLabel lblFrage1
+	 * SplitPane[JLabel A1 | RadioButton rdbtnA1]
+	 * SplitPane[JLabel B1 | RadioButton rdbtnB1]
+	 * SplitPane[JLabel C1 | RadioButton rdbtnC1]
+	 * SplitPane[JLabel D1 | RadioButton rdbtnD1]
+	 * JButton btnAccept1
+	 * JLabel lblStatus1
+	 */
 	private void initPanel1() {
 		panel1 = new JPanel();
 		gbc_panel1 = new GridBagConstraints();
@@ -287,6 +338,9 @@ public class MultiplayerGUI extends JFrame {
 		
 	}
 	
+	/**
+	 * Initialisiert das mittlere Panel für Punktestand, Ausgaben, Ansagen und aktuelle gewählte Kategorie
+	 */
 	private void initPanel2(){
 		panel2 = new JPanel();
 		gbc_panel2 = new GridBagConstraints();
@@ -314,6 +368,16 @@ public class MultiplayerGUI extends JFrame {
 		panel2.add(lblStatus);
 	}
 	
+	/**
+	 * Initialisiert das rechte Panel für Spieler 2
+	 * JLabel lblFrage2
+	 * SplitPane[JLabel A2 | RadioButton rdbtnA2]
+	 * SplitPane[JLabel B2 | RadioButton rdbtnB2]
+	 * SplitPane[JLabel C2 | RadioButton rdbtnC2]
+	 * SplitPane[JLabel D2 | RadioButton rdbtnD2]
+	 * JButton btnAccept2
+	 * JLabel lblStatus2
+	 */
 	private void initPanel3() {
 		panel3 = new JPanel();
 		gbc_panel3 = new GridBagConstraints();
@@ -374,6 +438,13 @@ public class MultiplayerGUI extends JFrame {
 		panel3.add(lblStatus2);
 	}
 	
+	/**
+	 * Liest die Datei {@code datei} ein und gibt Erfolg/Misserfolg zurück
+	 * 
+	 * @see EditorGUI
+	 * @param datei einzulesende Datei
+	 * @return Erfolg/Misserfolg des Einlesens
+	 */
 	public boolean readFile(File datei) {		
 	    try {
 			Scanner scanner = new Scanner(datei);
@@ -416,6 +487,9 @@ public class MultiplayerGUI extends JFrame {
 	    }
 	}
 	
+	/**
+	 * Initialisiert das Hauptfenster mit den 3 Panels und initialisiert die benutzte Semaphore
+	 */
 	private void initGUI() {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 905, 503);
@@ -451,7 +525,6 @@ public class MultiplayerGUI extends JFrame {
 		try {
 			bereit.acquire();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
