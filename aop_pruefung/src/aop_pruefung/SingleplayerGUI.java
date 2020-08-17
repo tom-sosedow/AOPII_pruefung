@@ -63,7 +63,7 @@ public class SingleplayerGUI extends JFrame {
 		initGUI();	
 		ls = this.pfad.listFiles(new FileFilter() {
 			public boolean accept(File f) {
-					return f.isFile();}});
+					return f.isFile()&&f.getName().endsWith(".txt");}});
 		
 		if (ls != null && ls.length != 0) 
 			for(int i = 0; i< ls.length; i++) 
@@ -147,6 +147,7 @@ public class SingleplayerGUI extends JFrame {
 						//Bot wählt Kategorie
 						actFile = dateien.elementAt(random.nextInt(dateien.size()));
 						readFile(actFile);
+						lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
 						
 						//nächste 3 fragen mit neuer Kategorie
@@ -161,7 +162,7 @@ public class SingleplayerGUI extends JFrame {
 						lblStatus.setText("Spieler 2 gewinnt.");
 					else
 						lblStatus.setText("Gleichstand! Was für ein Spiel!");
-				} catch (InterruptedException e) {
+				} catch (InterruptedException|IllegalArgumentException e) {
 					e.printStackTrace();
 				}
 			}
@@ -232,7 +233,7 @@ public class SingleplayerGUI extends JFrame {
 	
 	/**
 	 * Bot wählt entsprechend seiner Schwerigkeitsstufe eine richtige oder falsche Antwort
-	 * @param i
+	 * @param i Schwierigkeit (0-3)
 	 */
 	private void auswahlBot(float i) {
 		String rAntwort = kategorie.get(lblFrage1.getText())[4];
@@ -299,10 +300,10 @@ public class SingleplayerGUI extends JFrame {
 	private void initPanel1() {
 		panel1 = new JPanel();
 		gbc_panel1 = new GridBagConstraints();
-		gbc_panel1.insets = new Insets(0, 0, 0, 5);
 		gbc_panel1.fill = GridBagConstraints.BOTH;
 		gbc_panel1.gridx = 0;
 		gbc_panel1.gridy = 0;
+		gbc_panel1.weightx = 0.5;
 		contentPane.add(panel1, gbc_panel1);
 		panel1.setLayout(new GridLayout(7, 1, 0, 0));
 		
@@ -364,10 +365,10 @@ public class SingleplayerGUI extends JFrame {
 	private void initPanel2(){
 		panel2 = new JPanel();
 		gbc_panel2 = new GridBagConstraints();
-		gbc_panel2.insets = new Insets(0, 0, 0, 5);
 		gbc_panel2.fill = GridBagConstraints.BOTH;
 		gbc_panel2.gridx = 1;
 		gbc_panel2.gridy = 0;
+		gbc_panel2.weightx = 0.1;
 		contentPane.add(panel2, gbc_panel2);
 		panel2.setLayout(new GridLayout(5, 1, 0, 0));
 		
@@ -403,6 +404,7 @@ public class SingleplayerGUI extends JFrame {
 		gbc_panel3.fill = GridBagConstraints.BOTH;
 		gbc_panel3.gridx = 2;
 		gbc_panel3.gridy = 0;
+		gbc_panel2.weightx = 0.5;
 		contentPane.add(panel3, gbc_panel3);
 		panel3.setLayout(new GridLayout(7, 1, 0, 0));
 		
@@ -508,11 +510,11 @@ public class SingleplayerGUI extends JFrame {
 	/**
 	 * Initialisiert das Hauptfenster mit den 3 Panels und initialisiert die benutzte 
 	 * Semaphore. Außerdem wird ein Pop-Up geöffnet, in dem der Spieler eine Schwierigkeitsstufe wählen soll.
-	 * Wird dieses einfach geschlossen, wird die schwierigste Stufe gewählt.
+	 * Wird dieses ohne Auswahl geschlossen, wird die schwierigste Stufe gewählt.
 	 */
 	private void initGUI() {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 905, 503);
+		setBounds(100, 100, 1600, 700);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -540,7 +542,6 @@ public class SingleplayerGUI extends JFrame {
 		bg2.add(rdbtnB2);
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
-		
 		jcbPopup = new JComboBox<File>(dateien);
 
 		jcbDiff = new JComboBox<String>(diffs);
@@ -554,8 +555,6 @@ public class SingleplayerGUI extends JFrame {
 		try {
 			bereit.acquire();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 }
