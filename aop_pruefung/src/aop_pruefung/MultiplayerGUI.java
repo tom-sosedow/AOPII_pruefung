@@ -50,7 +50,7 @@ public class MultiplayerGUI extends JFrame {
 	private Random random = new Random();
 	
 	/**
-	 * Initialisiert das Fenster und liest alle Dateien aus dem übergebenen Ordner ein.
+	 * Initialisiert das Fenster und liest alle Dateien aus dem uebergebenen Ordner ein.
 	 * 
 	 * @param pfad Verzeichnis, in dem die Dateien liegen
 	 */
@@ -67,7 +67,7 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das Fenster und nutzt dabei den übergebenen Vektor (Files)
+	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
 	 * @param dateien Vektor mit den File-Daten
 	 * @wbp.parser.constructor
 	 */
@@ -77,15 +77,15 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Loggt die Auswahl des Spielers {@code i} ein (falls sie nicht leer ist) wenn der Spieler Bestätigen drückt und setzt ihn auf "Bereit".
+	 * Loggt die Auswahl des Spielers {@code i} ein (falls sie nicht leer ist) wenn der Spieler Bestaetigen drueckt und setzt ihn auf "Bereit".
 	 * Wenn beide Spieler bereit sind, also ihre Antworten eingeloggt haben, werden die Antworten ausgewertet, entsprechend 
-	 * Punkte verteilt und der Startzustand für die nächste Fragerunde hergestellt.
+	 * Punkte verteilt und der Startzustand fuer die naechste Fragerunde hergestellt.
 	 * 
 	 * @param i Nummer des Spielers der akzeptiert
 	 */
 	private void accept(int i) {
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		//Entscheidung ob Warten auf anderen Spieler nötig
+		//Entscheidung ob Warten auf anderen Spieler noetig
 		if (i == 1) {
 			if(!spieler1.getAuswahl().equals("")) {
 				spieler1.setBereit(true);
@@ -93,7 +93,7 @@ public class MultiplayerGUI extends JFrame {
 				changeRdbtnState(1, false);
 			}
 			else {
-				lblStatus1.setText("Bitte wähle zuerst eine Antwort!");
+				lblStatus1.setText("Bitte waehle zuerst eine Antwort!");
 				return;
 			}
 		}
@@ -104,11 +104,11 @@ public class MultiplayerGUI extends JFrame {
 				changeRdbtnState(2, false);
 			}
 			else {
-				lblStatus2.setText("Bitte wähle zuerst eine Antwort!");
+				lblStatus2.setText("Bitte waehle zuerst eine Antwort!");
 				return;
 			}
 		}
-		//Wenn beide Spieler bereit: Punkte aktualisieren, richtige Antwort anzeigen und Ausgangszustand für nächste Fragerunde herstellen
+		//Wenn beide Spieler bereit: Punkte aktualisieren, richtige Antwort anzeigen und Ausgangszustand fuer naechste Fragerunde herstellen
 		if(spieler1.getBereit() && spieler2.getBereit()) {
 			if(spieler1.getAuswahl().equals(kategorie.get(lblFrage1.getText())[4])) {
 				spieler1.setPunkte(spieler1.getPunkte()+1);
@@ -150,9 +150,9 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Aktiviert(b=true) bzw. deaktiviert (b=false) die Möglichkeit des Sspielers i, eine Auswahl in seiner Buttongroup zu tätigen
+	 * Aktiviert(b=true) bzw. deaktiviert (b=false) die Moeglichkeit des Sspielers i, eine Auswahl in seiner Buttongroup zu taetigen
 	 * @param i Spielernummer
-	 * @param b gewünschter Status der Buttons (Boolean)
+	 * @param b gewuenschter Status der Buttons (Boolean)
 	 */
 	private void changeRdbtnState(int i, Boolean b) {
 		if (i == 1) {
@@ -170,7 +170,7 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Spielablauf wird hier durchgegangen entsprechend der Spielregeln. Startet dafür einen neuen Thread damit mithilfe 
+	 * Spielablauf wird hier durchgegangen entsprechend der Spielregeln. Startet dafuer einen neuen Thread damit mithilfe 
 	 * von Semaphores auf Spielereingaben gewartet werden kann.
 	 */
 	public void spielen() {
@@ -179,7 +179,7 @@ public class MultiplayerGUI extends JFrame {
 				try {
 					//3 Runden
 					for(int a = 0; a < 3; a++) {
-						selectCat(1); //Kategorie wählen
+						selectCat(1); //Kategorie waehlen
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
 						refreshQ(); //erste Frage
 						bereit.acquire(); //warten auf Antwort
@@ -188,9 +188,9 @@ public class MultiplayerGUI extends JFrame {
 							askQ();
 							bereit.acquire();
 						}
-						selectCat(2); //Bot wählt Kategorie
+						selectCat(2); //Bot waehlt Kategorie
 						
-						//nächste 3 fragen mit neuer Kategorie
+						//naechste 3 fragen mit neuer Kategorie
 						for(int i = 0; i<3; i++) {
 							askQ();
 							bereit.acquire();
@@ -201,7 +201,7 @@ public class MultiplayerGUI extends JFrame {
 					else if(spieler1.getPunkte() < spieler2.getPunkte())
 						lblStatus.setText("Spieler 2 gewinnt.");
 					else
-						lblStatus.setText("Gleichstand! Was für ein Spiel!");
+						lblStatus.setText("Gleichstand! Was fuer ein Spiel!");
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -227,7 +227,7 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet ein fenster, in dem Spieler {@code i} eine Kategorie auswählen soll.
+	 * Öffnet ein fenster, in dem Spieler {@code i} eine Kategorie auswaehlen soll.
 	 * @param i Spielernummer
 	 */
 	private void selectCat(int i) {
@@ -243,8 +243,8 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Wählt eine zufällige nächste Frage (die noch nicht gestellt wurde) und zeigt 
-	 * sie mit den Antwortmöglichkeiten in allen entsprechenden Feldern an
+	 * Waehlt eine zufaellige naechste Frage (die noch nicht gestellt wurde) und zeigt 
+	 * sie mit den Antwortmoeglichkeiten in allen entsprechenden Feldern an
 	 */
 	private void refreshQ() {
 		int z;
@@ -267,7 +267,7 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das rechte Panel für Spieler 1
+	 * Initialisiert das rechte Panel fuer Spieler 1
 	 * JLabel lblFrage1
 	 * SplitPane[JLabel A1 | RadioButton rdbtnA1]
 	 * SplitPane[JLabel B1 | RadioButton rdbtnB1]
@@ -339,7 +339,7 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das mittlere Panel für Punktestand, Ausgaben, Ansagen und aktuelle gewählte Kategorie
+	 * Initialisiert das mittlere Panel fuer Punktestand, Ausgaben, Ansagen und aktuelle gewaehlte Kategorie
 	 */
 	private void initPanel2(){
 		panel2 = new JPanel();
@@ -369,7 +369,7 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das rechte Panel für Spieler 2
+	 * Initialisiert das rechte Panel fuer Spieler 2
 	 * JLabel lblFrage2
 	 * SplitPane[JLabel A2 | RadioButton rdbtnA2]
 	 * SplitPane[JLabel B2 | RadioButton rdbtnB2]
@@ -439,7 +439,7 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Liest die Datei {@code datei} ein und gibt Erfolg/Misserfolg zurück
+	 * Liest die Datei {@code datei} ein und gibt Erfolg/Misserfolg zurueck
 	 * 
 	 * @see EditorGUI
 	 * @param datei einzulesende Datei
@@ -475,16 +475,9 @@ public class MultiplayerGUI extends JFrame {
 			return true;
 			
 		}
-		catch(FileNotFoundException e){
-			System.out.println("Fehler.");
-			e.printStackTrace();
+		catch(FileNotFoundException|NullPointerException e){
 			return false;
 		}
-	    catch(NullPointerException e) {
-	    	System.out.println("Fehler.");
-	    	e.printStackTrace();
-	    	return false;
-	    }
 	}
 	
 	/**

@@ -50,7 +50,7 @@ public class EditorGUI extends JFrame {
 	private int modus = 0;
 	
 	/**
-	 * Initialisiert das Fenster und nutzt dabei den übergebenen Vektor (Files)
+	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
 	 * @param dateien Vektor mit den File-Daten
 	 * @wbp.parser.constructor
 	 */
@@ -60,7 +60,7 @@ public class EditorGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das Fenster und liest alle Dateien aus dem übergebenen Ordner ein.
+	 * Initialisiert das Fenster und liest alle Dateien aus dem uebergebenen Ordner ein.
 	 * 
 	 * @param pfad Verzeichnis, in dem die Dateien liegen
 	 */
@@ -101,8 +101,8 @@ public class EditorGUI extends JFrame {
 	}
 	
 	/**
-	 * Leert die Felder für Frage+Antworten+richtige Antwort. 
-	 * Die nächste Speicherung einer Frage wird eine neue Frage zur Datenbank hinzufügen
+	 * Leert die Felder fuer Frage+Antworten+richtige Antwort. 
+	 * Die naechste Speicherung einer Frage wird eine neue Frage zur Datenbank hinzufuegen
 	 * 
 	 */
 	private void addQ(){
@@ -125,8 +125,8 @@ public class EditorGUI extends JFrame {
 	}
 	
 	/**
-	 * Die Frage/Antworten der aktuell gewählten Frage werden aktualisiert bzw. eine neue Frage hinzugefügt, falls vorher entsprechender
-	 * Button betätigt wurde.
+	 * Die Frage/Antworten der aktuell gewaehlten Frage werden aktualisiert bzw. eine neue Frage hinzugefuegt, falls vorher entsprechender
+	 * Button betaetigt wurde.
 	 */
 	private void modifyQ() {
 		String[] temp = {textArea_A.getText(), textArea_B.getText(), textArea_C.getText(), textArea_D.getText(), (String) comboBox_rAntwort.getSelectedItem()};
@@ -152,7 +152,7 @@ public class EditorGUI extends JFrame {
 	}
 	
 	/**
-	 * Entfernt die gewählte Frage aus der Datenbank, sofern sie enthalten ist.
+	 * Entfernt die gewaehlte Frage aus der Datenbank, sofern sie enthalten ist.
 	 */
 	private void deleteQ() {
 		if(kategorie.containsKey(list.getSelectedValue())) {
@@ -163,7 +163,7 @@ public class EditorGUI extends JFrame {
 	
 	/**
 	 * Öffnet ein Fenster, in dem der Name einer neuen Kategorie eingegeben werden kann.
-	 * Wird im Verzeichnis/dem Verzeichnis der gewählten Dateien eine neue Datei mit diesem Namen erstellen.
+	 * Wird im Verzeichnis/dem Verzeichnis der gewaehlten Dateien eine neue Datei mit diesem Namen erstellen.
 	 */
 	private void newCategory() {
 		String name = JOptionPane.showInputDialog("Gib den Namen der neuen Kategorie ein:");
@@ -187,7 +187,7 @@ public class EditorGUI extends JFrame {
 	}
 	
 	/**
-	 * Aktualisiert die Frage/Antwort-Felder mit den Informationen aus der Datenbank von der gewählten Frage
+	 * Aktualisiert die Frage/Antwort-Felder mit den Informationen aus der Datenbank von der gewaehlten Frage
 	 */
 	private void aktualisieren() {
 		try {
@@ -252,7 +252,7 @@ public class EditorGUI extends JFrame {
 	}
 	
 	/**
-	 * Probiert, die gewählte Datei in die Datenbank einzulesen.
+	 * Probiert, die gewaehlte Datei in die Datenbank einzulesen.
 	 * Falls erfolgreich, wird die Anzeige der Fragen mit den neuen Frage erneuert
 	 */
 	private void selectFile() {
@@ -273,7 +273,7 @@ public class EditorGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert die Oberfläche:
+	 * Initialisiert die Oberflaeche:
 	 * Erstellt alle Buttons, Textfelder, Label, das Frame und die Liste zur Anzeige der Fragen aus der Datenbank
 	 */
 	private void initGUI() {
@@ -359,17 +359,17 @@ public class EditorGUI extends JFrame {
 		btnSave.setBounds(390, 11, 137, 23);
 		panel.add(btnSave);
 		
-		btnAddQ = new JButton("Frage hinzufügen");
+		btnAddQ = new JButton("Frage hinzufuegen");
 		btnAddQ.addActionListener(e -> addQ());
 		btnAddQ.setBounds(27, 448, 168, 23);
 		panel.add(btnAddQ);
 
-		btnAccept = new JButton("Bestätigen");
+		btnAccept = new JButton("Bestaetigen");
 		btnAccept.setBounds(698, 341, 121, 23);
 		btnAccept.addActionListener(e -> modifyQ());
 		panel.add(btnAccept);
 		
-		btnDelete = new JButton("Frage löschen");
+		btnDelete = new JButton("Frage loeschen");
 		btnDelete.addActionListener(e -> deleteQ());
 		btnDelete.setBounds(359, 448, 168, 23);
 		panel.add(btnDelete);

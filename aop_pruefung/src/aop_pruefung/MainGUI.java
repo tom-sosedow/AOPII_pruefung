@@ -68,7 +68,7 @@ public class MainGUI extends JFrame {
 		lblPfad.setBounds(232, 167, 321, 14);
 		panel.add(lblPfad);
 		
-		btnPfad = new JButton("Dateien wählen");
+		btnPfad = new JButton("Dateien waehlen");
 		btnPfad.addActionListener(e -> chooseFiles());
 		btnPfad.setBounds(60, 205, 162, 23);
 		panel.add(btnPfad);
@@ -83,7 +83,7 @@ public class MainGUI extends JFrame {
 		btnMehrspieler.setBounds(322, 97, 183, 30);
 		panel.add(btnMehrspieler);
 		
-		btnChooseDir = new JButton("Ordner wählen");
+		btnChooseDir = new JButton("Ordner waehlen");
 		btnChooseDir.addActionListener(e-> chooseDir());
 		btnChooseDir.setBounds(60, 163, 162, 23);
 		panel.add(btnChooseDir);
@@ -99,7 +99,7 @@ public class MainGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet das Fenster für den Multiplayermode, falls Dateien oder ein Verzeichnis gewählt wurden
+	 * Öffnet das Fenster fuer den Multiplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void multiplayerMode() {
 		MultiplayerGUI multiplayer;
@@ -114,12 +114,12 @@ public class MainGUI extends JFrame {
 			multiplayer.spielen();
 		}
 		else {
-			lblPfad.setText("Bitte erst die Kategorien auswählen!");	
+			lblPfad.setText("Bitte erst die Kategorien auswaehlen!");	
 		}	
 	}
 	
 	/**
-	 * Öffnet das Fentser für den Singleplayermode, falls Dateien oder ein Verzeichnis gewählt wurden
+	 * Öffnet das Fentser fuer den Singleplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void singleplayerMode() {
 		SingleplayerGUI singleplayer;
@@ -134,11 +134,11 @@ public class MainGUI extends JFrame {
 			singleplayer.spielen();
 		}
 		else {
-			lblPfad.setText("Bitte erst die Kategorien auswählen!");	
+			lblPfad.setText("Bitte erst die Kategorien auswaehlen!");	
 		}
 	}
 	/**
-	 * Öffnet das Editorfenster, falls Dateien oder ein Verzeichnis gewählt wurden
+	 * Öffnet das Editorfenster, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void editorMode() {
 		EditorGUI editor;
@@ -151,12 +151,12 @@ public class MainGUI extends JFrame {
 			editor.setVisible(true);
 		}
 		else {
-			lblPfad.setText("Bitte erst die Kategorien auswählen!");
+			lblPfad.setText("Bitte erst die Kategorien auswaehlen!");
 		}
 	}
 	
 	/**
-	 * Öffnet ein Pop-Up um Datei/-en auszuwählen.
+	 * Öffnet ein Pop-Up um Datei/-en auszuwaehlen.
 	 */
 	private void chooseFiles() {
 		JFileChooser chooser = new JFileChooser();
@@ -173,7 +173,7 @@ public class MainGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet ein Pop-Up um ein Verzeichnis/Ordner auszuwählen.
+	 * Öffnet ein Pop-Up um ein Verzeichnis/Ordner auszuwaehlen.
 	 */
 	private void chooseDir() {
 		JFileChooser chooser = new JFileChooser();
@@ -201,7 +201,7 @@ public class MainGUI extends JFrame {
 				"    <li>Es werden 3 Runden gespielt</li>" + 
 				"    <li>In jeder Runde darf erst Spieler 1(links), danach Spieler 2(rechts) eine Kategorie waehlen (Im Singleplayer Modus ist Spieler 2 ein Bot).</li>" + 
 				"    <li>Pro Kategorie werden dann 3 Fragen gestellt, jede richtige Antwort gibt 1 Punkt!</li>" + 
-				"    <li>Wenn beide Spieler ihre Antwort abgegeben haben, wird die Lösung präsentiert und dann die nächste Frage gezeigt.</li>" + 
+				"    <li>Wenn beide Spieler ihre Antwort abgegeben haben, wird die Loesung praesentiert und dann die naechste Frage gezeigt.</li>" + 
 				"</ol>" + 
 				"<p><span style=\"color: rgb(209, 72, 65);\">Viel Spass!</span></p></html>";
 		JLabel message = new JLabel(msg);

@@ -51,10 +51,12 @@ public class SingleplayerGUI extends JFrame {
 	private float diff;
 	private String[] diffs = {"Leicht", "Mittel", "Schwer", "Dr. Kawashima"};
 	private Vector<Integer> fragen = new Vector<Integer>();
+	private Vector<Integer> history = new Vector<Integer>();
+	private String actFrage ="";
 	ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	
 	/**
-	 * Initialisiert das Fenster und liest alle Dateien aus dem übergebenen Ordner ein.
+	 * Initialisiert das Fenster und liest alle Dateien aus dem uebergebenen Ordner ein.
 	 * 
 	 * @param pfad Verzeichnis, in dem die Dateien liegen
 	 */
@@ -71,7 +73,7 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das Fenster und nutzt dabei den übergebenen Vektor (Files)
+	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
 	 * @param dateien Vektor mit den File-Daten
 	 * @wbp.parser.constructor
 	 */
@@ -81,15 +83,15 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Loggt die Auswahl des Spielers ein (falls sie nicht leer ist) wenn der Spieler Bestätigen drückt.
-	 * Die Antworten ausgewertet, ggf. ein Punkt vergeben und der Startzustand für die nächste Fragerunde hergestellt.
+	 * Loggt die Auswahl des Spielers ein (falls sie nicht leer ist) wenn der Spieler Bestaetigen drueckt.
+	 * Die Antworten ausgewertet, ggf. ein Punkt vergeben und der Startzustand fuer die naechste Fragerunde hergestellt.
 	 */
 	private void accept() {
 		if(spieler1.getAuswahl().equals("")) {
-			lblStatus1.setText("Bitte wähle zuerst eine Antwort!");
+			lblStatus1.setText("Bitte waehle zuerst eine Antwort!");
 			return;
 		}
-		if(spieler1.getAuswahl().equals(kategorie.get(lblFrage1.getText())[4])) {
+		if(spieler1.getAuswahl().equals(kategorie.get(actFrage)[4])) {
 			spieler1.setPunkte(spieler1.getPunkte()+1);
 			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 			lblStatus1.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
@@ -103,7 +105,7 @@ public class SingleplayerGUI extends JFrame {
 				lblStatus1.setText("Leider falsch!");
 		    }, 3, TimeUnit.SECONDS);
 		}
-		if(spieler2.getAuswahl().equals(kategorie.get(lblFrage2.getText())[4])) {
+		if(spieler2.getAuswahl().equals(kategorie.get(actFrage)[4])) {
 			spieler2.setPunkte(spieler2.getPunkte()+1);
 			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 			lblStatus2.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
@@ -122,8 +124,8 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Spielablauf wird hier durchgegangen entsprechend der Spielregeln. Startet dafür einen neuen Thread damit mithilfe 
-	 * von Semaphores auf Spielereingabe gewartet werden kann. Kategorieauswahl von Spieler 2 wird zufällig getätigt.
+	 * Spielablauf wird hier durchgegangen entsprechend der Spielregeln. Startet dafuer einen neuen Thread damit mithilfe 
+	 * von Semaphores auf Spielereingabe gewartet werden kann. Kategorieauswahl von Spieler 2 wird zufaellig getaetigt.
 	 */
 	public void spielen() {
 		Runnable spielen = new Runnable() {
@@ -131,7 +133,7 @@ public class SingleplayerGUI extends JFrame {
 				try {
 					//3 Runden
 					for(int a = 0; a < 3; a++) {
-						selectCat(); //Kategorie wählen
+						selectCat(); //Kategorie waehlen
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
 						
 						//erste Frage
@@ -144,24 +146,33 @@ public class SingleplayerGUI extends JFrame {
 							bereit.acquire();
 						}
 						
-						//Bot wählt Kategorie
-						actFile = dateien.elementAt(random.nextInt(dateien.size()));
+						//Bot waehlt Kategorie die vorher noch nicht dran war
+						int z;
+						do {
+							z = random.nextInt(dateien.size());
+							actFile = dateien.elementAt(z);
+						}while(history.contains(z) && !(history.size()==dateien.size()));
+						if(history.size()==dateien.size()) {
+							history.clear();
+						}
 						readFile(actFile);
 						lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
 						
-						//nächste 3 fragen mit neuer Kategorie
+						//naechste 3 fragen mit neuer Kategorie
 						for(int i = 0; i<3; i++) {
 							askQ();
 							bereit.acquire();
 						}
+						TimeUnit.SECONDS.sleep(2);
+						
 					}
 					if(spieler1.getPunkte() > spieler2.getPunkte())
 						lblStatus.setText("Spieler 1 gewinnt.");
 					else if(spieler1.getPunkte() < spieler2.getPunkte())
 						lblStatus.setText("Spieler 2 gewinnt.");
 					else
-						lblStatus.setText("Gleichstand! Was für ein Spiel!");
+						lblStatus.setText("Gleichstand! Was fuer ein Spiel!");
 				} catch (InterruptedException|IllegalArgumentException e) {
 					e.printStackTrace();
 				}
@@ -172,10 +183,10 @@ public class SingleplayerGUI extends JFrame {
 	
 	/**
 	 * Zeigt richtige Antwort der letzten Frage an, wartet und stellt die neue Frage, 
-	 * nachdem die vorherigen Auswahlen geleert werden. Bot wählt Antwort entsprechend der gewählten Schwierigkeitsstufe aus.
+	 * nachdem die vorherigen Auswahlen geleert werden. Bot waehlt Antwort entsprechend der gewaehlten Schwierigkeitsstufe aus.
 	 */
 	private void askQ() {
-		lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(lblFrage1.getText())[4] + "!");
+		lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 		try {
 			TimeUnit.SECONDS.sleep(3);
 		} catch (InterruptedException e) {
@@ -189,7 +200,7 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet ein fenster, in dem der Spieler eine Kategorie auswählen soll.
+	 * Öffnet ein fenster, in dem der Spieler eine Kategorie auswaehlen soll.
 	 */
 	private void selectCat() {
 		JOptionPane.showMessageDialog( null, jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
@@ -198,6 +209,7 @@ public class SingleplayerGUI extends JFrame {
 			lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 			readFile(actFile);
 			fragen.clear();
+			history.add(jcbPopup.getSelectedIndex());
 		}
 		else {
 			this.dispose();
@@ -206,8 +218,8 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Wählt eine zufällige nächste Frage (die noch nicht gestellt wurde) und zeigt 
-	 * sie mit den Antwortmöglichkeiten in allen entsprechenden Feldern an
+	 * Waehlt eine zufaellige naechste Frage (die noch nicht gestellt wurde) und zeigt 
+	 * sie mit den Antwortmoeglichkeiten in allen entsprechenden Feldern an
 	 * 
 	 * @see MuliplayerGUI
 	 */
@@ -217,13 +229,14 @@ public class SingleplayerGUI extends JFrame {
 			z = random.nextInt(keys.length);
 		}while(fragen.contains(z));
 		fragen.add(z);
-		lblFrage1.setText(keys[z]);
+		actFrage = keys[z];
+		lblFrage1.setText("<html><p>" + actFrage + "</p></html>");
 		rdbtnA1.setText(kategorie.get(keys[z])[0]);
 		rdbtnB1.setText(kategorie.get(keys[z])[1]);
 		rdbtnC1.setText(kategorie.get(keys[z])[2]);
 		rdbtnD1.setText(kategorie.get(keys[z])[3]);
 
-		lblFrage2.setText(keys[z]);
+		lblFrage2.setText("<html><p>" + actFrage + "</p></html>");
 		rdbtnA2.setText(kategorie.get(keys[z])[0]);
 		rdbtnB2.setText(kategorie.get(keys[z])[1]);
 		rdbtnC2.setText(kategorie.get(keys[z])[2]);
@@ -232,11 +245,11 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Bot wählt entsprechend seiner Schwerigkeitsstufe eine richtige oder falsche Antwort
+	 * Bot waehlt entsprechend seiner Schwerigkeitsstufe eine richtige oder falsche Antwort
 	 * @param i Schwierigkeit (0-3)
 	 */
 	private void auswahlBot(float i) {
-		String rAntwort = kategorie.get(lblFrage1.getText())[4];
+		String rAntwort = kategorie.get(actFrage)[4];
 		String[] ABCD = {"A", "B", "C", "D"};
 		int temp = 0;
 		float schranke = (i*0.2f)+0.2f;
@@ -288,7 +301,7 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das rechte Panel für Spieler 1
+	 * Initialisiert das rechte Panel fuer Spieler 1
 	 * JLabel lblFrage1
 	 * SplitPane[JLabel A1 | RadioButton rdbtnA1]
 	 * SplitPane[JLabel B1 | RadioButton rdbtnB1]
@@ -360,7 +373,7 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das mittlere Panel für Punktestand, Ausgaben, Ansagen und aktuelle gewählte Kategorie
+	 * Initialisiert das mittlere Panel fuer Punktestand, Ausgaben, Ansagen und aktuelle gewaehlte Kategorie
 	 */
 	private void initPanel2(){
 		panel2 = new JPanel();
@@ -390,7 +403,7 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das rechte Panel für Spieler 2
+	 * Initialisiert das rechte Panel fuer Spieler 2
 	 * JLabel lblFrage2
 	 * SplitPane[JLabel A2 | RadioButton rdbtnA2]
 	 * SplitPane[JLabel B2 | RadioButton rdbtnB2]
@@ -460,7 +473,7 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Liest die Datei {@code datei} ein und gibt Erfolg/Misserfolg zurück
+	 * Liest die Datei {@code datei} ein und gibt Erfolg/Misserfolg zurueck
 	 * 
 	 * @see EditorGUI
 	 * @param datei einzulesende Datei
@@ -496,21 +509,14 @@ public class SingleplayerGUI extends JFrame {
 			return true;
 			
 		}
-		catch(FileNotFoundException e){
-			System.out.println("Fehler.");
-			e.printStackTrace();
+		catch(FileNotFoundException|NullPointerException e){
 			return false;
 		}
-	    catch(NullPointerException e) {
-	    	System.out.println("Fehler.");
-	    	e.printStackTrace();
-	    	return false;
-	    }
 	}
 	/**
 	 * Initialisiert das Hauptfenster mit den 3 Panels und initialisiert die benutzte 
-	 * Semaphore. Außerdem wird ein Pop-Up geöffnet, in dem der Spieler eine Schwierigkeitsstufe wählen soll.
-	 * Wird dieses ohne Auswahl geschlossen, wird die schwierigste Stufe gewählt.
+	 * Semaphore. Ausserdem wird ein Pop-Up geoeffnet, in dem der Spieler eine Schwierigkeitsstufe waehlen soll.
+	 * Wird dieses ohne Auswahl geschlossen, wird die schwierigste Stufe gewaehlt.
 	 */
 	private void initGUI() {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -545,7 +551,8 @@ public class SingleplayerGUI extends JFrame {
 		jcbPopup = new JComboBox<File>(dateien);
 
 		jcbDiff = new JComboBox<String>(diffs);
-		JOptionPane.showMessageDialog( null, jcbDiff, "Wähle eine Schwierigkeitsstufe (des Gegners)", JOptionPane.QUESTION_MESSAGE);
+		jcbDiff.setSelectedIndex(0);
+		JOptionPane.showMessageDialog( null, jcbDiff, "Waehle eine Schwierigkeitsstufe (des Gegners)", JOptionPane.QUESTION_MESSAGE);
 		if(jcbDiff.getSelectedIndex() != -1) {
 			diff = jcbDiff.getSelectedIndex();
 		}
