@@ -45,6 +45,7 @@ public class MultiplayerGUI extends JFrame {
 	private Vector<Integer> fragen = new Vector<Integer>();
 	private JComboBox<File> jcbPopup; 
 	private String[] keys;
+	private String actFrage ="";
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
 	private Random random = new Random();
@@ -59,7 +60,7 @@ public class MultiplayerGUI extends JFrame {
 		initGUI();	
 		ls = this.pfad.listFiles(new FileFilter() {
 			public boolean accept(File f) {
-					return f.isFile();}});
+					return f.isFile()&&f.getName().endsWith(".txt");}});
 		
 		if (ls != null && ls.length != 0) 
 			for(int i = 0; i< ls.length; i++) 
@@ -110,7 +111,7 @@ public class MultiplayerGUI extends JFrame {
 		}
 		//Wenn beide Spieler bereit: Punkte aktualisieren, richtige Antwort anzeigen und Ausgangszustand fuer naechste Fragerunde herstellen
 		if(spieler1.getBereit() && spieler2.getBereit()) {
-			if(spieler1.getAuswahl().equals(kategorie.get(lblFrage1.getText())[4])) {
+			if(spieler1.getAuswahl().equals(kategorie.get(actFrage)[4])) {
 				spieler1.setPunkte(spieler1.getPunkte()+1);
 				lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 				lblStatus1.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
@@ -124,7 +125,7 @@ public class MultiplayerGUI extends JFrame {
 					lblStatus1.setText("Leider falsch!");
 			    }, 3, TimeUnit.SECONDS);
 			}
-			if(spieler2.getAuswahl().equals(kategorie.get(lblFrage2.getText())[4])) {
+			if(spieler2.getAuswahl().equals(kategorie.get(actFrage)[4])) {
 				spieler2.setPunkte(spieler2.getPunkte()+1);
 				lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 				lblStatus2.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
@@ -214,7 +215,7 @@ public class MultiplayerGUI extends JFrame {
 	 * Zeigt richtige Antwort der letzten Frage an, wartet und stellt die neue Frage, nachdem die vorherigen Auswahlen geleert werden.
 	 */
 	private void askQ() {
-		lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(lblFrage1.getText())[4] + "!");
+		lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 		try {
 			TimeUnit.SECONDS.sleep(3);
 		} catch (InterruptedException e) {
@@ -252,13 +253,14 @@ public class MultiplayerGUI extends JFrame {
 			z = random.nextInt(keys.length);
 		}while(fragen.contains(z));
 		fragen.add(z);
-		lblFrage1.setText(keys[z]);
+		actFrage = keys[z];
+		lblFrage1.setText("<html><p>" + actFrage + "</p></html>");
 		rdbtnA1.setText(kategorie.get(keys[z])[0]);
 		rdbtnB1.setText(kategorie.get(keys[z])[1]);
 		rdbtnC1.setText(kategorie.get(keys[z])[2]);
 		rdbtnD1.setText(kategorie.get(keys[z])[3]);
 
-		lblFrage2.setText(keys[z]);
+		lblFrage2.setText("<html><p>" + actFrage + "</p></html>");
 		rdbtnA2.setText(kategorie.get(keys[z])[0]);
 		rdbtnB2.setText(kategorie.get(keys[z])[1]);
 		rdbtnC2.setText(kategorie.get(keys[z])[2]);
@@ -283,6 +285,7 @@ public class MultiplayerGUI extends JFrame {
 		gbc_panel1.fill = GridBagConstraints.BOTH;
 		gbc_panel1.gridx = 0;
 		gbc_panel1.gridy = 0;
+		gbc_panel1.weightx = 0.5;
 		contentPane.add(panel1, gbc_panel1);
 		panel1.setLayout(new GridLayout(7, 1, 0, 0));
 		
@@ -348,6 +351,7 @@ public class MultiplayerGUI extends JFrame {
 		gbc_panel2.fill = GridBagConstraints.BOTH;
 		gbc_panel2.gridx = 1;
 		gbc_panel2.gridy = 0;
+		gbc_panel2.weightx = 0.1;
 		contentPane.add(panel2, gbc_panel2);
 		panel2.setLayout(new GridLayout(5, 1, 0, 0));
 		
@@ -384,6 +388,7 @@ public class MultiplayerGUI extends JFrame {
 		gbc_panel3.fill = GridBagConstraints.BOTH;
 		gbc_panel3.gridx = 2;
 		gbc_panel3.gridy = 0;
+		gbc_panel2.weightx = 0.5;
 		contentPane.add(panel3, gbc_panel3);
 		panel3.setLayout(new GridLayout(7, 1, 0, 0));
 		
@@ -443,7 +448,7 @@ public class MultiplayerGUI extends JFrame {
 	 * 
 	 * @see EditorGUI
 	 * @param datei einzulesende Datei
-	 * @return Erfolg/Misserfolg des Einlesens
+	 * @return Boolean: Erfolg/Misserfolg des Einlesens
 	 */
 	public boolean readFile(File datei) {		
 	    try {
