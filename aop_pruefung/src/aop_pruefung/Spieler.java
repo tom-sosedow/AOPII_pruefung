@@ -1,5 +1,10 @@
 package aop_pruefung;
 
+/**
+ * Verwaltet die Informationen über die Spieler: Punkte, Auswahl, Nummer und ob se bereit sind.
+ * @author Tom Sosedow
+ *
+ */
 public class Spieler {
 	private int nummer, punkte;
 	private String auswahl;

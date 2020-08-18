@@ -2,33 +2,31 @@ package aop_pruefung;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
-import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
-
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Vector;
-import java.util.concurrent.TimeUnit;
-import java.awt.event.ActionEvent;
-import javax.swing.JTextField;
 import javax.swing.JLabel;
+import java.awt.GridLayout;
+import java.awt.FlowLayout;
 
+/**
+ * Beinhaltet die main welche das Startfenster erstellt. Von hier aus wird das Datenset für die 3 Modi gewaehlt und die Anleitung angezeigt.
+ * @author Tom Sosedow
+ *
+ */
 public class MainGUI extends JFrame {
 	private Vector<File> dateien = null;
-	private JPanel contentPane;
-	private JPanel panel;
+	private JPanel contentPane, panelBottom, panelTop;
 	private File pfad;
 	private JButton btnEinzelspieler, btnMehrspieler, btnPfad, btnEditor, btnChooseDir;
 	private JLabel lblPfad, lblFiles;
 	private JButton btnInst;
+	private JLabel lblPlatzhalter;
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -47,55 +45,56 @@ public class MainGUI extends JFrame {
 	 * Initialisieren der GUI des Hauptfensters
 	 */
 	public MainGUI() {
-		setTitle("Modusauswahl");
+		setTitle("Willkommen!");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 589, 302);
+		setBounds(100, 100, 935, 381);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 		
-		panel = new JPanel();
-		contentPane.add(panel, BorderLayout.CENTER);
-		panel.setLayout(null);
-		
-		btnEinzelspieler = new JButton("Einzelspieler (vs. COM)");
-		btnEinzelspieler.addActionListener(e-> singleplayerMode());
-		btnEinzelspieler.setBounds(322, 56, 183, 30);
-		panel.add(btnEinzelspieler);
-		
-		lblPfad = new JLabel("");
-		lblPfad.setBounds(232, 167, 321, 14);
-		panel.add(lblPfad);
-		
-		btnPfad = new JButton("Dateien waehlen");
-		btnPfad.addActionListener(e -> chooseFiles());
-		btnPfad.setBounds(60, 205, 162, 23);
-		panel.add(btnPfad);
+		panelBottom = new JPanel();
+		contentPane.add(panelBottom, BorderLayout.CENTER);
+		panelBottom.setLayout(new GridLayout(0, 2, 10, 10));
 		
 		btnEditor = new JButton("Editor");
 		btnEditor.addActionListener(e-> editorMode());
-		btnEditor.setBounds(60, 56, 162, 71);
-		panel.add(btnEditor);
+		panelBottom.add(btnEditor);
+		
+		btnEinzelspieler = new JButton("Einzelspieler (vs. COM)");
+		btnEinzelspieler.addActionListener(e-> singleplayerMode());
+		panelBottom.add(btnEinzelspieler);
+		
+		lblPlatzhalter = new JLabel("");
+		panelBottom.add(lblPlatzhalter);
 		
 		btnMehrspieler = new JButton("Mehrspieler");
 		btnMehrspieler.addActionListener(e-> multiplayerMode());
-		btnMehrspieler.setBounds(322, 97, 183, 30);
-		panel.add(btnMehrspieler);
+		panelBottom.add(btnMehrspieler);
 		
 		btnChooseDir = new JButton("Ordner waehlen");
 		btnChooseDir.addActionListener(e-> chooseDir());
-		btnChooseDir.setBounds(60, 163, 162, 23);
-		panel.add(btnChooseDir);
+		panelBottom.add(btnChooseDir);
+		
+		lblPfad = new JLabel("");
+		panelBottom.add(lblPfad);
+		
+		btnPfad = new JButton("Dateien waehlen");
+		btnPfad.addActionListener(e -> chooseFiles());
+		panelBottom.add(btnPfad);
 		
 		lblFiles = new JLabel("");
-		lblFiles.setBounds(232, 209, 321, 14);
-		panel.add(lblFiles);
+		panelBottom.add(lblFiles);
+		
+		panelTop = new JPanel();
+		FlowLayout flowLayout = (FlowLayout) panelTop.getLayout();
+		flowLayout.setHgap(0);
+		flowLayout.setAlignment(FlowLayout.LEFT);
+		contentPane.add(panelTop, BorderLayout.NORTH);
 		
 		btnInst = new JButton("Anleitung");
+		panelTop.add(btnInst);
 		btnInst.addActionListener(e-> instructions());
-		btnInst.setBounds(0, 0, 115, 23);
-		panel.add(btnInst);
 	}
 	
 	/**
@@ -114,7 +113,8 @@ public class MainGUI extends JFrame {
 			multiplayer.spielen();
 		}
 		else {
-			lblPfad.setText("Bitte erst die Kategorien auswaehlen!");	
+			lblPfad.setText("<- Bitte erst die Kategorien auswaehlen!");
+			lblFiles.setText("<-");
 		}	
 	}
 	
@@ -134,7 +134,8 @@ public class MainGUI extends JFrame {
 			singleplayer.spielen();
 		}
 		else {
-			lblPfad.setText("Bitte erst die Kategorien auswaehlen!");	
+			lblPfad.setText("<- Bitte erst die Kategorien auswaehlen!");
+			lblFiles.setText("<-");	
 		}
 	}
 	/**
@@ -151,7 +152,8 @@ public class MainGUI extends JFrame {
 			editor.setVisible(true);
 		}
 		else {
-			lblPfad.setText("Bitte erst die Kategorien auswaehlen!");
+			lblPfad.setText("<- Bitte erst die Kategorien auswaehlen!");
+			lblFiles.setText("<-");
 		}
 	}
 	
@@ -160,16 +162,20 @@ public class MainGUI extends JFrame {
 	 */
 	private void chooseFiles() {
 		JFileChooser chooser = new JFileChooser();
+		File[] temp;
+		String temp2 ="";
 		pfad = null;
 		lblPfad.setText("");
 		chooser.setMultiSelectionEnabled(true);
 		chooser.showOpenDialog(getParent());
-		File[] temp = chooser.getSelectedFiles();
+		temp = chooser.getSelectedFiles();
 		dateien = new Vector<File>();
 		for(File a : temp) {
 			dateien.add(a);
+			temp2 += a.getName() + "; ";
 		}
-		lblFiles.setText(dateien.toString());
+		lblFiles.setText(temp2);
+		lblPfad.setText("");
 	}
 	
 	/**
@@ -178,21 +184,23 @@ public class MainGUI extends JFrame {
 	private void chooseDir() {
 		JFileChooser chooser = new JFileChooser();
 		dateien = null;
-		lblFiles.setText("");
+		
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 	    if(chooser.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
-	    	lblPfad.setText("Pfad: " + chooser.getSelectedFile());
 	    	pfad = chooser.getSelectedFile();
+	    	lblPfad.setText("Pfad: " + chooser.getSelectedFile());
+	    	lblFiles.setText("");
 	    }
 	}
 	
 	/**
 	 * Öffnet ein Pop-Up in dem die Spielregeln und eine Anleitung gezeigt wird.
+	 * HTML erstellt mithilfe von https://wordtohtml.net/
 	 */
 	private void instructions() {
 		String msg = "<html><h1>Anleitung</h1>\r\n" + 
 				"<ol>\r\n" + 
-				"    <li>Waehle zuerst deinen Datensatz aus. Falls du noch keinen hast, waehle einen Ordner, in dem du einen erstellen moechtest.&nbsp;</li>" + 
+				"    <li>Waehle zuerst deinen Datensatz aus. Falls du noch keinen hast, waehle einen Ordner in dem du einen erstellen moechtest.</li>" + 
 				"    <li>Im Editor kannst du deinen Kategorien neue Fragen hinzufuegen, Fragen loeschen oder veraendern und neue Kategorien erstellen.</li>" + 
 				"    <li>Willst du spielen, so waehle den gewuenschten Modus aus. Einzelspieler oder Mehrspieler (2 Spieler).</li>" + 
 				"</ol>" + 

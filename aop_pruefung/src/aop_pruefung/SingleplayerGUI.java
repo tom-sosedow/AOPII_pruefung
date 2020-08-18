@@ -12,7 +12,6 @@ import javax.swing.JOptionPane;
 import javax.swing.ButtonGroup;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
@@ -28,6 +27,11 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
 
+/**
+ * Beherbergt das Fenster für den Singleplayermodus.
+ * @author Tom Sosedow
+ * 
+ */
 public class SingleplayerGUI extends JFrame {
 
 	private JPanel contentPane, panel1, panel2, panel3;

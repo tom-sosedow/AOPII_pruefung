@@ -28,6 +28,11 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
 
+/**
+ * Beherbergt das Fenster für den Multiplayermodus.
+ * @author Tom Sosedow
+ *
+ */
 public class MultiplayerGUI extends JFrame {
 
 	private JPanel contentPane, panel1, panel2, panel3;

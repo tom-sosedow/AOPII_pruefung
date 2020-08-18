@@ -25,11 +25,14 @@ import java.util.Vector;
 
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+/**
+ * Verwaltet das Fenster des Editormodus. Hier wird der zuvor ausgewählte Datensatz(files/pfad) geändert oder ein neuer erstellt.
+ * @author Tom Sosedow
+ *
+ */
 public class EditorGUI extends JFrame {
 
 	private JPanel contentPane;
@@ -70,7 +73,7 @@ public class EditorGUI extends JFrame {
 		initGUI();
 		ls = this.pfad.listFiles(new FileFilter() {
 			public boolean accept(File f) {
-					return f.isFile();}});
+				return f.isFile()&&f.getName().endsWith(".txt");}});
 		
 		if (ls != null && ls.length != 0) 
 			for(int i = 0; i< ls.length; i++) 
