@@ -15,6 +15,7 @@ import java.awt.GridBagConstraints;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -54,8 +55,8 @@ public class SingleplayerGUI extends JFrame {
 	private Random random = new Random();
 	private float diff;
 	private String[] diffs = {"Leicht", "Mittel", "Schwer", "Dr. Kawashima"};
-	private Vector<Integer> fragen = new Vector<Integer>();
-	private Vector<Integer> history = new Vector<Integer>();
+	private ArrayList<Integer> fragen = new ArrayList<Integer>();
+	private ArrayList<Integer> history = new ArrayList<Integer>();
 	private String actFrage ="";
 	ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	
@@ -90,7 +91,7 @@ public class SingleplayerGUI extends JFrame {
 	 * Loggt die Auswahl des Spielers ein (falls sie nicht leer ist) wenn der Spieler Bestaetigen drueckt.
 	 * Die Antworten ausgewertet, ggf. ein Punkt vergeben und der Startzustand fuer die naechste Fragerunde hergestellt.
 	 */
-	private void accept() {
+	private void accept(){
 		if(spieler1.getAuswahl().equals("")) {
 			lblStatus1.setText("Bitte waehle zuerst eine Antwort!");
 			return;
@@ -135,6 +136,7 @@ public class SingleplayerGUI extends JFrame {
 		Runnable spielen = new Runnable() {
 			@Override public void run() {
 				try {
+					int z;
 					//3 Runden
 					for(int a = 0; a < 3; a++) {
 						selectCat(); //Kategorie waehlen
@@ -142,43 +144,72 @@ public class SingleplayerGUI extends JFrame {
 						
 						//erste Frage
 						refreshQ();
+						lblStatus.setText("");
+						bg1.clearSelection();
+						bg2.clearSelection();
 						auswahlBot(diff);
 						bereit.acquire();
 						//2 Fragen 
 						for(int i = 0; i<2; i++) {
+							lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 							askQ();
 							bereit.acquire();
 						}
+						lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 						
 						//Bot waehlt Kategorie die vorher noch nicht dran war
-						int z;
+						
 						do {
 							z = random.nextInt(dateien.size());
 							actFile = dateien.elementAt(z);
-						}while(history.contains(z) && !(history.size()==dateien.size()));
-						if(history.size()==dateien.size()) {
+						} while(history.contains(z) && !(history.size()>=dateien.size()));
+						if(history.size()>=dateien.size()) {
 							history.clear();
 						}
-						readFile(actFile);
+						history.add(z);
+						kategorie.clear();
+						readFile(actFile); // Rückgabewert entegen nehmen in while
 						lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
+						fragen.clear();
 						
-						//naechste 3 fragen mit neuer Kategorie
-						for(int i = 0; i<3; i++) {
+						//1 Frage der neuen Kategorie
+						askQ();
+						bereit.acquire();
+						//naechste 2 Fragen
+						for(int i = 0; i<2; i++) {
+							lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 							askQ();
 							bereit.acquire();
 						}
+						lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 						TimeUnit.SECONDS.sleep(2);
 						
 					}
+					
+					z = 1;
 					if(spieler1.getPunkte() > spieler2.getPunkte())
-						lblStatus.setText("Spieler 1 gewinnt.");
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 1 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					else if(spieler1.getPunkte() < spieler2.getPunkte())
-						lblStatus.setText("Spieler 2 gewinnt.");
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 2 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					else
-						lblStatus.setText("Gleichstand! Was fuer ein Spiel!");
-				} catch (InterruptedException|IllegalArgumentException e) {
-					e.printStackTrace();
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Gleichstand! Was fuer ein Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
+					
+					switch(z) {
+						case 0:
+							dispose();
+							break;
+						default:
+							rdbtnA1.setEnabled(false);
+							rdbtnB1.setEnabled(false);
+							rdbtnC1.setEnabled(false);
+							rdbtnD1.setEnabled(false);
+							btnAccept1.setEnabled(false);
+							break;
+					}
+				} catch (InterruptedException|IllegalArgumentException e) { 
+					JOptionPane.showMessageDialog(getParent(), "Ein Fehler ist aufgetreten", "Fehler", JOptionPane.ERROR_MESSAGE);
+					dispose();
 				}
 			}
 		};
@@ -186,11 +217,9 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Zeigt richtige Antwort der letzten Frage an, wartet und stellt die neue Frage, 
-	 * nachdem die vorherigen Auswahlen geleert werden. Bot waehlt Antwort entsprechend der gewaehlten Schwierigkeitsstufe aus.
+	 * Stellt eine neue Frage und stellt den Wartezustand auf die Eingabe des Nutzers her.
 	 */
 	private void askQ() {
-		lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 		try {
 			TimeUnit.SECONDS.sleep(3);
 		} catch (InterruptedException e) {
@@ -211,12 +240,10 @@ public class SingleplayerGUI extends JFrame {
 		if(jcbPopup.getSelectedIndex() != -1) {
 			actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
 			lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
+			kategorie.clear();
 			readFile(actFile);
 			fragen.clear();
 			history.add(jcbPopup.getSelectedIndex());
-		}
-		else {
-			this.dispose();
 		}
 		
 	}
@@ -227,7 +254,7 @@ public class SingleplayerGUI extends JFrame {
 	 * 
 	 * @see MuliplayerGUI
 	 */
-	private void refreshQ() {
+	private void refreshQ() throws NullPointerException{
 		int z;
 		do{
 			z = random.nextInt(keys.length);
@@ -421,7 +448,7 @@ public class SingleplayerGUI extends JFrame {
 		gbc_panel3.fill = GridBagConstraints.BOTH;
 		gbc_panel3.gridx = 2;
 		gbc_panel3.gridy = 0;
-		gbc_panel2.weightx = 0.5;
+		gbc_panel3.weightx = 0.5;
 		contentPane.add(panel3, gbc_panel3);
 		panel3.setLayout(new GridLayout(7, 1, 0, 0));
 		
@@ -483,7 +510,7 @@ public class SingleplayerGUI extends JFrame {
 	 * @param datei einzulesende Datei
 	 * @return Erfolg/Misserfolg des Einlesens
 	 */
-	public boolean readFile(File datei) {		
+	private boolean readFile(File datei) {		
 	    try {
 			Scanner scanner = new Scanner(datei);
 			int i = 1;

@@ -7,7 +7,7 @@ package aop_pruefung;
  */
 public class Spieler {
 	private int nummer, punkte;
-	private String auswahl;
+	private String auswahl = "";
 	private Boolean bereit = false;
 	
 	/**

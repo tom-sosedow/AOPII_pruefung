@@ -33,6 +33,7 @@ import java.awt.event.MouseEvent;
  * @author Tom Sosedow
  *
  */
+
 public class EditorGUI extends JFrame {
 
 	private JPanel contentPane;
@@ -49,12 +50,12 @@ public class EditorGUI extends JFrame {
 	private JScrollPane scrollPane;
 	private Vector<File> dateien;
 	private DefaultListModel<String> model = new DefaultListModel<String>();
-	private JList<String> list = new JList<String>( model );
+	private JList<String> list = new JList<String>(model);
 	private int modus = 0;
 	
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
-	 * @param dateien Vektor mit den File-Daten
+	 * @param files Vektor mit den File-Daten
 	 * @wbp.parser.constructor
 	 */
 	public EditorGUI(Vector<File> files) {
@@ -209,7 +210,7 @@ public class EditorGUI extends JFrame {
 	
 	/**
 	 * Liest die Datei {@code datei} in die Datenbank ein
-	 * @param datei
+	 * @param datei Datei zum Einlesen
 	 * @return true, falls Einlesen erfolgreich; false sonst
 	 */
 	public boolean readFile(File datei) {		
@@ -282,7 +283,7 @@ public class EditorGUI extends JFrame {
 	private void initGUI() {
 		setTitle("Editor");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 875, 551);
+		setBounds(100, 100, 986, 551);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -296,32 +297,36 @@ public class EditorGUI extends JFrame {
 		lblFragen.setBounds(27, 50, 46, 14);
 		panel.add(lblFragen);
 		
-		textArea_B = new JTextArea();
-		textArea_B.setText("Antwort 2");
-		textArea_B.setBounds(599, 134, 240, 48);
-		panel.add(textArea_B);
-		
 		textArea_A = new JTextArea();
 		textArea_A.setText("Antwort 1");
-		textArea_A.setBounds(599, 75, 240, 48);
+		textArea_A.setBounds(599, 75, 351, 65);
+		textArea_A.setLineWrap(true);
 		panel.add(textArea_A);
+		
+		textArea_B = new JTextArea();
+		textArea_B.setText("Antwort 2");
+		textArea_B.setBounds(599, 151, 351, 65);
+		textArea_B.setLineWrap(true);
+		panel.add(textArea_B);
 		
 		textArea_C = new JTextArea();
 		textArea_C.setText("Antwort 3");
-		textArea_C.setBounds(599, 193, 240, 48);
+		textArea_C.setBounds(599, 227, 351, 65);
+		textArea_C.setLineWrap(true);
 		panel.add(textArea_C);
 		
 		textArea_D = new JTextArea();
 		textArea_D.setText("Antwort 4");
-		textArea_D.setBounds(599, 252, 240, 48);
+		textArea_D.setBounds(599, 303, 351, 65);
+		textArea_D.setLineWrap(true);
 		panel.add(textArea_D);
 		
 		comboBox_rAntwort = new JComboBox<String>(ABCD);
-		comboBox_rAntwort.setBounds(558, 341, 121, 22);
+		comboBox_rAntwort.setBounds(599, 400, 121, 22);
 		panel.add(comboBox_rAntwort);
 		
 		lblrAntwort = new JLabel("Richtige Antwort:");
-		lblrAntwort.setBounds(558, 320, 121, 14);
+		lblrAntwort.setBounds(599, 379, 121, 14);
 		panel.add(lblrAntwort);
 		
 		lblA = new JLabel("A:");
@@ -329,20 +334,21 @@ public class EditorGUI extends JFrame {
 		panel.add(lblA);
 		
 		lblB = new JLabel("B:");
-		lblB.setBounds(558, 139, 31, 14);
+		lblB.setBounds(558, 156, 31, 14);
 		panel.add(lblB);
 		
 		lblC = new JLabel("C:");
-		lblC.setBounds(558, 198, 31, 14);
+		lblC.setBounds(558, 232, 31, 14);
 		panel.add(lblC);
 		
 		lblD = new JLabel("D:");
-		lblD.setBounds(558, 257, 31, 14);
+		lblD.setBounds(558, 308, 31, 14);
 		panel.add(lblD);
 		
 		textArea_Frage = new JTextArea();
-		textArea_Frage.setBounds(558, 10, 281, 56);
+		textArea_Frage.setBounds(558, 10, 392, 56);
 		textArea_Frage.setText("(Frage)");
+		textArea_Frage.setLineWrap(true);
 		panel.add(textArea_Frage);
 		
 		list.addMouseListener(new MouseAdapter() {
@@ -353,7 +359,7 @@ public class EditorGUI extends JFrame {
 		});
 		
 		scrollPane = new JScrollPane();
-		scrollPane.setBounds(27, 75, 500, 334);
+		scrollPane.setBounds(27, 75, 500, 348);
 		panel.add(scrollPane);
 		scrollPane.setViewportView(list);
 		
@@ -368,7 +374,7 @@ public class EditorGUI extends JFrame {
 		panel.add(btnAddQ);
 
 		btnAccept = new JButton("Bestaetigen");
-		btnAccept.setBounds(698, 341, 121, 23);
+		btnAccept.setBounds(739, 400, 121, 23);
 		btnAccept.addActionListener(e -> modifyQ());
 		panel.add(btnAccept);
 		
@@ -386,7 +392,5 @@ public class EditorGUI extends JFrame {
 		btnNewCategory.addActionListener(e -> newCategory());
 		btnNewCategory.setBounds(390, 46, 137, 23);
 		panel.add(btnNewCategory);
-		
-		
 	}
 }

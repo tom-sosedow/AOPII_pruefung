@@ -188,7 +188,7 @@ public class MainGUI extends JFrame {
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 	    if(chooser.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
 	    	pfad = chooser.getSelectedFile();
-	    	lblPfad.setText("Pfad: " + chooser.getSelectedFile());
+	    	lblPfad.setText("Pfad: " + pfad);
 	    	lblFiles.setText("");
 	    }
 	}
@@ -202,12 +202,14 @@ public class MainGUI extends JFrame {
 				"<ol>\r\n" + 
 				"    <li>Waehle zuerst deinen Datensatz aus. Falls du noch keinen hast, waehle einen Ordner in dem du einen erstellen moechtest.</li>" + 
 				"    <li>Im Editor kannst du deinen Kategorien neue Fragen hinzufuegen, Fragen loeschen oder veraendern und neue Kategorien erstellen.</li>" + 
-				"    <li>Willst du spielen, so waehle den gewuenschten Modus aus. Einzelspieler oder Mehrspieler (2 Spieler).</li>" + 
+				"    <li>Willst du spielen, so waehle den gewuenschten Modus aus. Einzelspieler oder Mehrspieler (2 Spieler).<br>" + 
+					"Beim Einzelspieler musst du eine Schwierigkeit für deinen Gegner (COM) auswaehlen. Falls du nichts auswaehlst, wird die schwierigste Stufe gewaehlt. <br>" +
+					"Dein Gegner waehlt selbstaendig seine Kategorie und seine Antworten!</li>" + 
 				"</ol>" + 
 				"<h3>So wird gespielt</h3>" + 
 				"<ol>" + 
 				"    <li>Es werden 3 Runden gespielt</li>" + 
-				"    <li>In jeder Runde darf erst Spieler 1(links), danach Spieler 2(rechts) eine Kategorie waehlen (Im Singleplayer Modus ist Spieler 2 ein Bot).</li>" + 
+				"    <li>In jeder Runde darf erst Spieler 1(links), danach Spieler 2(rechts) eine Kategorie waehlen.</li>" + 
 				"    <li>Pro Kategorie werden dann 3 Fragen gestellt, jede richtige Antwort gibt 1 Punkt!</li>" + 
 				"    <li>Wenn beide Spieler ihre Antwort abgegeben haben, wird die Loesung praesentiert und dann die naechste Frage gezeigt.</li>" + 
 				"</ol>" + 
