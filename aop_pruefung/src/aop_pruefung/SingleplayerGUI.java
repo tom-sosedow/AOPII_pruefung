@@ -207,7 +207,7 @@ public class SingleplayerGUI extends JFrame {
 							btnAccept1.setEnabled(false);
 							break;
 					}
-				} catch (InterruptedException|IllegalArgumentException e) { 
+				} catch (InterruptedException|IllegalArgumentException|NullPointerException e) { 
 					JOptionPane.showMessageDialog(getParent(), "Ein Fehler ist aufgetreten", "Fehler", JOptionPane.ERROR_MESSAGE);
 					dispose();
 				}

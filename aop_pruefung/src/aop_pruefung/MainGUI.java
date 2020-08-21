@@ -29,16 +29,13 @@ public class MainGUI extends JFrame {
 	private JLabel lblPlatzhalter;
 	
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					MainGUI main = new MainGUI();
-					main.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		try {
+			MainGUI main = new MainGUI();
+			main.setVisible(true);
+		} catch (Exception e) {
+			System.out.println("Etwas lief schief");
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -119,7 +116,7 @@ public class MainGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet das Fentser fuer den Singleplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
+	 * Öffnet das Fenster fuer den Singleplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void singleplayerMode() {
 		SingleplayerGUI singleplayer;
