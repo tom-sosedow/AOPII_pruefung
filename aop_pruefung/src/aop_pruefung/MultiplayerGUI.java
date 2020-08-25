@@ -30,7 +30,7 @@ import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
 
 /**
- * Beherbergt das Fenster für den Multiplayermodus.
+ * Beherbergt das Fenster fuer den Multiplayermodus.
  * @author Tom Sosedow
  *
  */
@@ -544,8 +544,8 @@ public class MultiplayerGUI extends JFrame {
 		initPanel2();
 		initPanel3();
 		
-		spieler1 = new Spieler(1);
-		spieler2 = new Spieler(2);
+		spieler1 = new Spieler();
+		spieler2 = new Spieler();
 		
 		bg1 = new ButtonGroup();
 		bg2 = new ButtonGroup();

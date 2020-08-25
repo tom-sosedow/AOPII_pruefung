@@ -1,12 +1,14 @@
 package aop_pruefung;
 
 /**
- * Verwaltet die Informationen über die Spieler: Punkte, Auswahl, Nummer und ob se bereit sind.
+ * Verwaltet die Informationen ueber die Spieler: Punkte, Auswahl, Nummer und ob se bereit sind.
  * @author Tom Sosedow
  *
  */
 public class Spieler {
-	private int nummer, punkte;
+	static private int anzahl = 0;
+	private int nummer;
+	private int punkte;
 	private String auswahl = "";
 	private Boolean bereit = false;
 	
@@ -14,8 +16,9 @@ public class Spieler {
 	 * Legt einen Spieler mit Nummer {@code nummer} an und setzt Punkte auf 0
 	 * @param nummer
 	 */
-	public Spieler(int nummer) {
-		this.nummer = nummer;
+	public Spieler() {
+		anzahl++;
+		this.nummer = anzahl; 
 		this.punkte = 0;
 	}
 	

@@ -15,7 +15,7 @@ import java.awt.GridLayout;
 import java.awt.FlowLayout;
 
 /**
- * Beinhaltet die main welche das Startfenster erstellt. Von hier aus wird das Datenset für die 3 Modi gewaehlt und die Anleitung angezeigt.
+ * Beinhaltet die main welche das Startfenster erstellt. Von hier aus wird das Datenset fuer die 3 Modi gewaehlt und die Anleitung angezeigt.
  * @author Tom Sosedow
  *
  */
@@ -23,10 +23,8 @@ public class MainGUI extends JFrame {
 	private Vector<File> dateien = null;
 	private JPanel contentPane, panelBottom, panelTop;
 	private File pfad;
-	private JButton btnEinzelspieler, btnMehrspieler, btnPfad, btnEditor, btnChooseDir;
-	private JLabel lblPfad, lblFiles;
-	private JButton btnInst;
-	private JLabel lblPlatzhalter;
+	private JButton btnEinzelspieler, btnMehrspieler, btnPfad, btnEditor, btnChooseDir, btnInst;
+	private JLabel lblPfad, lblFiles, lblPlatzhalter;
 	
 	public static void main(String[] args) {
 		try {
@@ -42,7 +40,7 @@ public class MainGUI extends JFrame {
 	 * Initialisieren der GUI des Hauptfensters
 	 */
 	public MainGUI() {
-		setTitle("Willkommen!");
+		setTitle("Hauptmenue");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 935, 381);
 		contentPane = new JPanel();
@@ -162,17 +160,18 @@ public class MainGUI extends JFrame {
 		File[] temp;
 		String temp2 ="";
 		pfad = null;
-		lblPfad.setText("");
 		chooser.setMultiSelectionEnabled(true);
 		chooser.showOpenDialog(getParent());
 		temp = chooser.getSelectedFiles();
-		dateien = new Vector<File>();
-		for(File a : temp) {
-			dateien.add(a);
-			temp2 += a.getName() + "; ";
+		if(temp.length>0) {
+			dateien = new Vector<File>();
+			for(File a : temp) {
+				dateien.add(a);
+				temp2 += a.getName() + "; ";
+			}
+			lblFiles.setText(temp2);
+			lblPfad.setText("");
 		}
-		lblFiles.setText(temp2);
-		lblPfad.setText("");
 	}
 	
 	/**
@@ -200,7 +199,7 @@ public class MainGUI extends JFrame {
 				"    <li>Waehle zuerst deinen Datensatz aus. Falls du noch keinen hast, waehle einen Ordner in dem du einen erstellen moechtest.</li>" + 
 				"    <li>Im Editor kannst du deinen Kategorien neue Fragen hinzufuegen, Fragen loeschen oder veraendern und neue Kategorien erstellen.</li>" + 
 				"    <li>Willst du spielen, so waehle den gewuenschten Modus aus. Einzelspieler oder Mehrspieler (2 Spieler).<br>" + 
-					"Beim Einzelspieler musst du eine Schwierigkeit für deinen Gegner (COM) auswaehlen. Falls du nichts auswaehlst, wird die schwierigste Stufe gewaehlt. <br>" +
+					"Beim Einzelspieler musst du eine Schwierigkeit fuer deinen Gegner (COM) auswaehlen. Falls du nichts auswaehlst, wird die schwierigste Stufe gewaehlt. <br>" +
 					"Dein Gegner waehlt selbstaendig seine Kategorie und seine Antworten!</li>" + 
 				"</ol>" + 
 				"<h3>So wird gespielt</h3>" + 

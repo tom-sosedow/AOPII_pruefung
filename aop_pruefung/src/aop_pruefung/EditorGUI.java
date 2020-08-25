@@ -29,7 +29,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 /**
- * Verwaltet das Fenster des Editormodus. Hier wird der zuvor ausgewählte Datensatz(files/pfad) geändert oder ein neuer erstellt.
+ * Verwaltet das Fenster des Editormodus. Hier wird der zuvor ausgewaehlte Datensatz(files/pfad) geaendert oder ein neuer erstellt.
  * @author Tom Sosedow
  *
  */
@@ -44,7 +44,7 @@ public class EditorGUI extends JFrame {
 	private JLabel lblFragen, lblrAntwort, lblA, lblB, lblC, lblD;
 	private JButton btnSave, btnAddQ, btnAccept, btnDelete, btnNewCategory;
 	private JComboBox<File> comboBox;
-	private JComboBox<?> comboBox_rAntwort;
+	private JComboBox<String> comboBox_rAntwort;
 	private String[] ABCD = {"A", "B", "C", "D"};
 	private JTextArea textArea_B,textArea_A, textArea_C, textArea_D, textArea_Frage;
 	private JScrollPane scrollPane;
@@ -172,11 +172,13 @@ public class EditorGUI extends JFrame {
 	private void newCategory() {
 		String name = JOptionPane.showInputDialog("Gib den Namen der neuen Kategorie ein:");
 		File datei;
-		if(name != null) {
-			if(pfad == null)
-				datei = new File(dateien.elementAt(0).getAbsolutePath()+"\\"+name+".txt");
-			else
-				datei = new File(pfad.toString()+"\\"+name+".txt");
+		if(name != null || name != "") {
+			if(pfad == null) {
+				datei = new File(dateien.elementAt(0).getParent()+"\\"+name+".txt");
+			}
+			else {
+				datei = new File(pfad.getAbsolutePath()+"\\"+name+".txt");
+			}
 			try {
 				datei.createNewFile();
 				comboBox.addItem(datei);

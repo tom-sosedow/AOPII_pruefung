@@ -29,7 +29,7 @@ import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
 
 /**
- * Beherbergt das Fenster für den Singleplayermodus.
+ * Beherbergt das Fenster fuer den Singleplayermodus.
  * @author Tom Sosedow
  * 
  */
@@ -45,18 +45,18 @@ public class SingleplayerGUI extends JFrame {
 	private ButtonGroup bg1, bg2;
 	private File[] ls = null;
 	private File pfad, actFile;
-	private Map<String, String[]> kategorie = new HashMap<>();
+	private Map<String, String[]> kategorie = new HashMap<>(); //Beinhaltet alle Fragen, dazugehoerige Antworten und die richtige Antwort
 	private Vector<File> dateien = new Vector<File>();
-	private JComboBox<File> jcbPopup; 
+	private JComboBox<String> jcbPopup; 
 	private JComboBox<String> jcbDiff;
-	private String[] keys;
+	private String[] keys; //Beinhaltet alle Fragen der aktuellen Kategorie
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
 	private Random random = new Random();
 	private float diff;
 	private String[] diffs = {"Leicht", "Mittel", "Schwer", "Dr. Kawashima"};
-	private ArrayList<Integer> fragen = new ArrayList<Integer>();
-	private ArrayList<Integer> history = new ArrayList<Integer>();
+	private ArrayList<Integer> fragen = new ArrayList<Integer>(); //Indizes der Fragen, die in der derzeitigen Kategorie bereits dran kamen
+	private ArrayList<Integer> history = new ArrayList<Integer>(); //Indizes der Kategorien, die in der aktuellen Partie bereits dran kamen
 	private String actFrage ="";
 	ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	
@@ -67,7 +67,7 @@ public class SingleplayerGUI extends JFrame {
 	 */
 	public SingleplayerGUI(File pfad) {
 		this.pfad = pfad;
-		initGUI();	
+		
 		ls = this.pfad.listFiles(new FileFilter() {
 			public boolean accept(File f) {
 					return f.isFile()&&f.getName().endsWith(".txt");}});
@@ -75,11 +75,14 @@ public class SingleplayerGUI extends JFrame {
 		if (ls != null && ls.length != 0) 
 			for(int i = 0; i< ls.length; i++) 
 				dateien.add(ls[i]);	
+		
+		initGUI();
+		
 	}
 	
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
-	 * @param dateien Vektor mit den File-Daten
+	 * @param dateien Vektor mit den Dateien
 	 * @wbp.parser.constructor
 	 */
 	public SingleplayerGUI(Vector<File> files) {
@@ -168,7 +171,7 @@ public class SingleplayerGUI extends JFrame {
 						}
 						history.add(z);
 						kategorie.clear();
-						readFile(actFile); // Rückgabewert entegen nehmen in while
+						readFile(actFile); // Rueckgabewert entegen nehmen in while
 						lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
 						fragen.clear();
@@ -208,6 +211,7 @@ public class SingleplayerGUI extends JFrame {
 							break;
 					}
 				} catch (InterruptedException|IllegalArgumentException|NullPointerException e) { 
+					e.printStackTrace();
 					JOptionPane.showMessageDialog(getParent(), "Ein Fehler ist aufgetreten", "Fehler", JOptionPane.ERROR_MESSAGE);
 					dispose();
 				}
@@ -217,7 +221,7 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Stellt eine neue Frage und stellt den Wartezustand auf die Eingabe des Nutzers her.
+	 * Stellt eine neue Frage und stellt den Wartezustand auf die Eingabe des Nutzers her. Der Bot waehlt seine Antwort.
 	 */
 	private void askQ() {
 		try {
@@ -236,6 +240,7 @@ public class SingleplayerGUI extends JFrame {
 	 * Öffnet ein fenster, in dem der Spieler eine Kategorie auswaehlen soll.
 	 */
 	private void selectCat() {
+		jcbPopup.setSelectedIndex(0);
 		JOptionPane.showMessageDialog( null, jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
 		if(jcbPopup.getSelectedIndex() != -1) {
 			actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
@@ -256,9 +261,16 @@ public class SingleplayerGUI extends JFrame {
 	 */
 	private void refreshQ() throws NullPointerException{
 		int z;
-		do{
+		if(fragen.size()<kategorie.keySet().size()) {
+			do{
 			z = random.nextInt(keys.length);
-		}while(fragen.contains(z));
+			}while(fragen.contains(z));
+		}
+		else {
+			fragen.clear();
+			z = random.nextInt(keys.length);
+		}
+		
 		fragen.add(z);
 		actFrage = keys[z];
 		lblFrage1.setText("<html><p>" + actFrage + "</p></html>");
@@ -276,7 +288,7 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Bot waehlt entsprechend seiner Schwerigkeitsstufe eine richtige oder falsche Antwort
+	 * Bot waehlt entsprechend seiner Schwierigkeitsstufe eine richtige oder falsche Antwort
 	 * @param i Schwierigkeit (0-3)
 	 */
 	private void auswahlBot(float i) {
@@ -284,8 +296,12 @@ public class SingleplayerGUI extends JFrame {
 		String[] ABCD = {"A", "B", "C", "D"};
 		int temp = 0;
 		float schranke = (i*0.2f)+0.2f;
-		float temp2 = random.nextFloat();
-		if(temp2<schranke) {
+		float z = random.nextFloat();
+		
+		// |0								<Schranke>							1|
+		//  	->z->richtige Antw.			<  -  -  >		->z->falsche Antwort
+		//wenn z vor der Schranke landet gibt der Bot die richtige Antwort ab, falls nicht eine zufaellige falsche.
+		if(z<schranke) {
 			switch(rAntwort) {
 				case "A":
 					rdbtnA2.setSelected(true);
@@ -566,8 +582,8 @@ public class SingleplayerGUI extends JFrame {
 		initPanel2();
 		initPanel3();
 		
-		spieler1 = new Spieler(1);
-		spieler2 = new Spieler(2);
+		spieler1 = new Spieler();
+		spieler2 = new Spieler();
 		
 		bg1 = new ButtonGroup();
 		bg2 = new ButtonGroup();
@@ -579,11 +595,16 @@ public class SingleplayerGUI extends JFrame {
 		bg2.add(rdbtnB2);
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
-		jcbPopup = new JComboBox<File>(dateien);
+		
+		String[] array = new String[dateien.size()];
+		for(int i = 0; i< dateien.size(); i++) {
+			array[i] = dateien.elementAt(i).getName().replace(".txt", "");		
+		}
+		jcbPopup = new JComboBox<String>(array);
 
 		jcbDiff = new JComboBox<String>(diffs);
 		jcbDiff.setSelectedIndex(0);
-		JOptionPane.showMessageDialog( null, jcbDiff, "Waehle eine Schwierigkeitsstufe (des Gegners)", JOptionPane.QUESTION_MESSAGE);
+		JOptionPane.showMessageDialog( null, jcbDiff, "Wie schlau soll dein Gegner sein?", JOptionPane.QUESTION_MESSAGE);
 		if(jcbDiff.getSelectedIndex() != -1) {
 			diff = jcbDiff.getSelectedIndex();
 		}
