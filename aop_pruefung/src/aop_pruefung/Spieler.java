@@ -13,8 +13,7 @@ public class Spieler {
 	private Boolean bereit = false;
 	
 	/**
-	 * Legt einen Spieler mit Nummer {@code nummer} an und setzt Punkte auf 0
-	 * @param nummer
+	 * Legt einen weiteren Spieler mit fortlaufender Nummer (beginnend bei 1) an und setzt Punkte auf 0
 	 */
 	public Spieler() {
 		anzahl++;

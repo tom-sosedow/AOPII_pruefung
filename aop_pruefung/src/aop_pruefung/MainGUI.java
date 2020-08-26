@@ -5,10 +5,12 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import java.io.File;
+import java.io.FileFilter;
 import java.util.Vector;
 import javax.swing.JLabel;
 import java.awt.GridLayout;
@@ -22,7 +24,6 @@ import java.awt.FlowLayout;
 public class MainGUI extends JFrame {
 	private Vector<File> dateien = null;
 	private JPanel contentPane, panelBottom, panelTop;
-	private File pfad;
 	private JButton btnEinzelspieler, btnMehrspieler, btnPfad, btnEditor, btnChooseDir, btnInst;
 	private JLabel lblPfad, lblFiles, lblPlatzhalter;
 	
@@ -90,20 +91,16 @@ public class MainGUI extends JFrame {
 		btnInst = new JButton("Anleitung");
 		panelTop.add(btnInst);
 		btnInst.addActionListener(e-> instructions());
+		
 	}
 	
 	/**
-	 * Öffnet das Fenster fuer den Multiplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
+	 * Oeffnet das Fenster fuer den Multiplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void multiplayerMode() {
 		MultiplayerGUI multiplayer;
 		if(dateien != null) {
 			multiplayer = new MultiplayerGUI(dateien);
-			multiplayer.setVisible(true);
-			multiplayer.spielen();
-		}
-		else if(pfad != null) {
-			multiplayer = new MultiplayerGUI(pfad);
 			multiplayer.setVisible(true);
 			multiplayer.spielen();
 		}
@@ -114,7 +111,7 @@ public class MainGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet das Fenster fuer den Singleplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
+	 * Oeffnet das Fenster fuer den Singleplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void singleplayerMode() {
 		SingleplayerGUI singleplayer;
@@ -123,27 +120,19 @@ public class MainGUI extends JFrame {
 			singleplayer.setVisible(true);
 			singleplayer.spielen();
 		}
-		else if(pfad != null) {
-			singleplayer = new SingleplayerGUI(pfad);
-			singleplayer.setVisible(true);
-			singleplayer.spielen();
-		}
 		else {
 			lblPfad.setText("<- Bitte erst die Kategorien auswaehlen!");
 			lblFiles.setText("<-");	
 		}
 	}
+	
 	/**
-	 * Öffnet das Editorfenster, falls Dateien oder ein Verzeichnis gewaehlt wurden
+	 * Oeffnet das Editorfenster, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void editorMode() {
 		EditorGUI editor;
 		if(dateien != null) {
 			editor = new EditorGUI(dateien);
-			editor.setVisible(true);
-		}
-		else if(pfad != null) {
-			editor = new EditorGUI(pfad);
 			editor.setVisible(true);
 		}
 		else {
@@ -153,14 +142,15 @@ public class MainGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet ein Pop-Up um Datei/-en auszuwaehlen.
+	 * Oeffnet ein Pop-Up um Datei/-en auszuwaehlen und speichert sie.
 	 */
 	private void chooseFiles() {
 		JFileChooser chooser = new JFileChooser();
 		File[] temp;
 		String temp2 ="";
-		pfad = null;
 		chooser.setMultiSelectionEnabled(true);
+		chooser.setFileFilter(new FileNameExtensionFilter("*.txt", "txt"));
+		chooser.setAcceptAllFileFilterUsed(false);
 		chooser.showOpenDialog(getParent());
 		temp = chooser.getSelectedFiles();
 		if(temp.length>0) {
@@ -175,7 +165,7 @@ public class MainGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet ein Pop-Up um ein Verzeichnis/Ordner auszuwaehlen.
+	 * Oeffnet ein Pop-Up um ein Verzeichnis/Ordner auszuwaehlen und speichert den Inhalt dessen.
 	 */
 	private void chooseDir() {
 		JFileChooser chooser = new JFileChooser();
@@ -183,14 +173,22 @@ public class MainGUI extends JFrame {
 		
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 	    if(chooser.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
-	    	pfad = chooser.getSelectedFile();
+	    	File pfad = chooser.getSelectedFile();
+	    	dateien = new Vector<File>();
 	    	lblPfad.setText("Pfad: " + pfad);
 	    	lblFiles.setText("");
+	    	File[] ls = pfad.listFiles(new FileFilter() {
+				public boolean accept(File f) {
+						return f.isFile()&&f.getName().endsWith(".txt");}});
+			
+			if (ls != null && ls.length != 0) 
+				for(int i = 0; i< ls.length; i++) 
+					dateien.add(ls[i]);
 	    }
 	}
 	
 	/**
-	 * Öffnet ein Pop-Up in dem die Spielregeln und eine Anleitung gezeigt wird.
+	 * Oeffnet ein Pop-Up in dem die Spielregeln und eine Anleitung gezeigt wird.
 	 * HTML erstellt mithilfe von https://wordtohtml.net/
 	 */
 	private void instructions() {

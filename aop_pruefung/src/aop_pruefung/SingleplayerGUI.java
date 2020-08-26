@@ -61,27 +61,7 @@ public class SingleplayerGUI extends JFrame {
 	ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	
 	/**
-	 * Initialisiert das Fenster und liest alle Dateien aus dem uebergebenen Ordner ein.
-	 * 
-	 * @param pfad Verzeichnis, in dem die Dateien liegen
-	 */
-	public SingleplayerGUI(File pfad) {
-		this.pfad = pfad;
-		
-		ls = this.pfad.listFiles(new FileFilter() {
-			public boolean accept(File f) {
-					return f.isFile()&&f.getName().endsWith(".txt");}});
-		
-		if (ls != null && ls.length != 0) 
-			for(int i = 0; i< ls.length; i++) 
-				dateien.add(ls[i]);	
-		
-		initGUI();
-		
-	}
-	
-	/**
-	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
+	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files) fuer die Kategorien
 	 * @param dateien Vektor mit den Dateien
 	 * @wbp.parser.constructor
 	 */
@@ -104,13 +84,13 @@ public class SingleplayerGUI extends JFrame {
 			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 			lblStatus1.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 			executor.schedule(() -> {
-				lblStatus1.setText("Richtig!");
+				lblStatus1.setText("");
 		    }, 3, TimeUnit.SECONDS);
 		}
 		else {
 			lblStatus1.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 			executor.schedule(() -> {
-				lblStatus1.setText("Leider falsch!");
+				lblStatus1.setText("");
 		    }, 3, TimeUnit.SECONDS);
 		}
 		if(spieler2.getAuswahl().equals(kategorie.get(actFrage)[4])) {
@@ -118,13 +98,13 @@ public class SingleplayerGUI extends JFrame {
 			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 			lblStatus2.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 			executor.schedule(() -> {
-				lblStatus2.setText("Richtig!");
+				lblStatus2.setText("");
 		    }, 3, TimeUnit.SECONDS);
 		}
 		else {
 			lblStatus2.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 			executor.schedule(() -> {
-				lblStatus2.setText("Leider falsch!");
+				lblStatus2.setText("");
 		    }, 3, TimeUnit.SECONDS);
 		}
 		spieler1.setAuswahl("");
@@ -160,7 +140,7 @@ public class SingleplayerGUI extends JFrame {
 						}
 						lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 						
-						//Bot waehlt Kategorie die vorher noch nicht dran war
+						//Bot waehlt Kategorie die vorher noch nicht dran war, ausser es waren schon alle dran, dann wird wieder zufaellig gewaehlt. 
 						
 						do {
 							z = random.nextInt(dateien.size());
@@ -171,7 +151,7 @@ public class SingleplayerGUI extends JFrame {
 						}
 						history.add(z);
 						kategorie.clear();
-						readFile(actFile); // Rueckgabewert entegen nehmen in while
+						readFile(actFile); // Rueckgabewert entgegen nehmen in while
 						lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
 						fragen.clear();
@@ -213,7 +193,10 @@ public class SingleplayerGUI extends JFrame {
 				} catch (InterruptedException|IllegalArgumentException|NullPointerException e) { 
 					e.printStackTrace();
 					JOptionPane.showMessageDialog(getParent(), "Ein Fehler ist aufgetreten", "Fehler", JOptionPane.ERROR_MESSAGE);
+				}
+				catch(StopGameException e) {
 					dispose();
+					JOptionPane.showMessageDialog(getParent(), e.getMessage(), "Spiel beendet!", JOptionPane.INFORMATION_MESSAGE);
 				}
 			}
 		};
@@ -238,18 +221,50 @@ public class SingleplayerGUI extends JFrame {
 	
 	/**
 	 * Öffnet ein fenster, in dem der Spieler eine Kategorie auswaehlen soll.
+	 * @throws StopGameException 
 	 */
-	private void selectCat() {
+	private void selectCat() throws StopGameException {
 		jcbPopup.setSelectedIndex(0);
-		JOptionPane.showMessageDialog( null, jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.QUESTION_MESSAGE);
-		if(jcbPopup.getSelectedIndex() != -1) {
-			actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
-			lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
-			kategorie.clear();
-			readFile(actFile);
-			fragen.clear();
-			history.add(jcbPopup.getSelectedIndex());
+		int approve = 0;
+		while(approve == 0) {
+			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.OK_OPTION) == 0) {
+				actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
+				kategorie.clear();
+				readFile(actFile);
+				if(kategorie.keySet().size()>0) {
+					fragen.clear();
+					history.add(jcbPopup.getSelectedIndex());
+					approve = 1;
+				}
+				else {
+					JOptionPane.showMessageDialog(getParent(), "Die gewaehlte Kategorie war leer. Waehle erneut.");
+				}
+				
+			}
+			else {
+				throw new StopGameException("Keine Kategorie gewaehlt!");
+			}
 		}
+		lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
+		
+		
+		/*
+		if(jcbPopup.getSelectedIndex() != -1) {
+			do {
+				actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
+				lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
+				kategorie.clear();
+				readFile(actFile);
+				if(kategorie.keySet().size()>0) {
+					fragen.clear();
+					history.add(jcbPopup.getSelectedIndex());
+				}
+				else {
+					JOptionPane.showMessageDialog( null, jcbPopup, "Die gewaehlte Kategorie war leer. Waehle erneut.", JOptionPane.WARNING_MESSAGE);
+				}
+			}while(jcbPopup.getSelectedIndex() == -1 || kategorie.keySet().size()<= 0);
+		}
+		*/
 		
 	}
 	
@@ -417,6 +432,10 @@ public class SingleplayerGUI extends JFrame {
 		lblStatus1 = new JLabel("");
 		panel1.add(lblStatus1);
 		
+		splitPaneA1.setEnabled(false);
+		splitPaneB1.setEnabled(false);
+		splitPaneC1.setEnabled(false);
+		splitPaneD1.setEnabled(false);
 	}
 	
 	/**
@@ -517,6 +536,11 @@ public class SingleplayerGUI extends JFrame {
 		rdbtnB2.setEnabled(false);
 		rdbtnC2.setEnabled(false);
 		rdbtnD2.setEnabled(false);
+		
+		splitPaneA2.setEnabled(false);
+		splitPaneB2.setEnabled(false);
+		splitPaneC2.setEnabled(false);
+		splitPaneD2.setEnabled(false);
 	}
 	
 	/**

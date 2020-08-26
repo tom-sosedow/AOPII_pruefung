@@ -29,7 +29,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 /**
- * Verwaltet das Fenster des Editormodus. Hier wird der zuvor ausgewaehlte Datensatz(files/pfad) geaendert oder ein neuer erstellt.
+ * Verwaltet das Fenster des Editormodus. Hier wird der zuvor ausgewaehlte Datensatz geaendert oder ein neuer erstellt.
  * @author Tom Sosedow
  *
  */
@@ -38,13 +38,12 @@ public class EditorGUI extends JFrame {
 
 	private JPanel contentPane;
 	private Map<String, String[]> kategorie = new HashMap<>();
-	private File pfad = null, actFile;
-	private File[] ls = null;
+	private File actFile;
 	private JPanel panel;
 	private JLabel lblFragen, lblrAntwort, lblA, lblB, lblC, lblD;
 	private JButton btnSave, btnAddQ, btnAccept, btnDelete, btnNewCategory;
-	private JComboBox<File> comboBox;
-	private JComboBox<String> comboBox_rAntwort;
+	private JComboBox<File> cbFiles;
+	private JComboBox<String> cbRAntwort;
 	private String[] ABCD = {"A", "B", "C", "D"};
 	private JTextArea textArea_B,textArea_A, textArea_C, textArea_D, textArea_Frage;
 	private JScrollPane scrollPane;
@@ -58,28 +57,9 @@ public class EditorGUI extends JFrame {
 	 * @param files Vektor mit den File-Daten
 	 * @wbp.parser.constructor
 	 */
-	public EditorGUI(Vector<File> files) {
-		this.dateien = files;
+	public EditorGUI(Vector<File> dateien) {
+		this.dateien = dateien;
 		initGUI();
-	}
-	
-	/**
-	 * Initialisiert das Fenster und liest alle Dateien aus dem uebergebenen Ordner ein.
-	 * 
-	 * @param pfad Verzeichnis, in dem die Dateien liegen
-	 */
-	public EditorGUI(File pfad) {
-		this.pfad = pfad;
-		dateien = new Vector<File>();
-		initGUI();
-		ls = this.pfad.listFiles(new FileFilter() {
-			public boolean accept(File f) {
-				return f.isFile()&&f.getName().endsWith(".txt");}});
-		
-		if (ls != null && ls.length != 0) 
-			for(int i = 0; i< ls.length; i++) 
-				dateien.add(ls[i]);
-		
 	}
 	
 	/**
@@ -112,12 +92,13 @@ public class EditorGUI extends JFrame {
 	private void addQ(){
 		if(modus == 0) {
 			btnAddQ.setText("Abbrechen");
+			list.clearSelection();
 			textArea_Frage.setText("(Frage)");
 			textArea_A.setText("");
 			textArea_B.setText("");
 			textArea_C.setText("");
 			textArea_D.setText("");
-			comboBox_rAntwort.setSelectedItem("A");
+			cbRAntwort.setSelectedItem("A");
 			modus = 1;
 		}
 		else {
@@ -133,7 +114,7 @@ public class EditorGUI extends JFrame {
 	 * Button betaetigt wurde.
 	 */
 	private void modifyQ() {
-		String[] temp = {textArea_A.getText(), textArea_B.getText(), textArea_C.getText(), textArea_D.getText(), (String) comboBox_rAntwort.getSelectedItem()};
+		String[] temp = {textArea_A.getText(), textArea_B.getText(), textArea_C.getText(), textArea_D.getText(), (String) cbRAntwort.getSelectedItem()};
 		String key = list.getSelectedValue();
 		String frage = textArea_Frage.getText();
 		if (modus == 0) {		
@@ -172,22 +153,20 @@ public class EditorGUI extends JFrame {
 	private void newCategory() {
 		String name = JOptionPane.showInputDialog("Gib den Namen der neuen Kategorie ein:");
 		File datei;
-		if(name != null || name != "") {
-			if(pfad == null) {
-				datei = new File(dateien.elementAt(0).getParent()+"\\"+name+".txt");
-			}
-			else {
-				datei = new File(pfad.getAbsolutePath()+"\\"+name+".txt");
-			}
+		textArea_Frage.setText("(Frage)");
+		textArea_A.setText("");
+		textArea_B.setText("");
+		textArea_C.setText("");
+		textArea_D.setText("");
+		if(name != null && name != "") {
+			datei = new File(dateien.elementAt(0).getParent()+"\\"+name+".txt");
 			try {
 				datei.createNewFile();
-				comboBox.addItem(datei);
-				comboBox.setSelectedItem(datei);
-				dateien.add(datei);
-				readFile(datei);
+				cbFiles.addItem(datei);
+				cbFiles.setSelectedItem(datei);
 				selectFile();
 			} catch (IOException e) {
-				e.printStackTrace();
+				JOptionPane.showMessageDialog(getParent(), "Fehler beim Erstellen der Datei", "Fehler", JOptionPane.WARNING_MESSAGE);
 			}
 		}
 	}
@@ -202,7 +181,7 @@ public class EditorGUI extends JFrame {
 			textArea_B.setText(kategorie.get(list.getSelectedValue())[1]);
 			textArea_C.setText(kategorie.get(list.getSelectedValue())[2]);
 			textArea_D.setText(kategorie.get(list.getSelectedValue())[3]);
-			comboBox_rAntwort.setSelectedItem(kategorie.get(list.getSelectedValue())[4]);
+			cbRAntwort.setSelectedItem(kategorie.get(list.getSelectedValue())[4]);
 		}
 		catch(NullPointerException e) {
 			
@@ -262,7 +241,7 @@ public class EditorGUI extends JFrame {
 	 * Falls erfolgreich, wird die Anzeige der Fragen mit den neuen Frage erneuert
 	 */
 	private void selectFile() {
-		File temp = dateien.elementAt(comboBox.getSelectedIndex());
+		File temp = dateien.elementAt(cbFiles.getSelectedIndex());
 		kategorie.clear();
 		boolean i = readFile(temp);
 		    if(i) {
@@ -323,9 +302,9 @@ public class EditorGUI extends JFrame {
 		textArea_D.setLineWrap(true);
 		panel.add(textArea_D);
 		
-		comboBox_rAntwort = new JComboBox<String>(ABCD);
-		comboBox_rAntwort.setBounds(599, 400, 121, 22);
-		panel.add(comboBox_rAntwort);
+		cbRAntwort = new JComboBox<String>(ABCD);
+		cbRAntwort.setBounds(599, 400, 121, 22);
+		panel.add(cbRAntwort);
 		
 		lblrAntwort = new JLabel("Richtige Antwort:");
 		lblrAntwort.setBounds(599, 379, 121, 14);
@@ -385,10 +364,12 @@ public class EditorGUI extends JFrame {
 		btnDelete.setBounds(359, 448, 168, 23);
 		panel.add(btnDelete);
 				
-		comboBox = new JComboBox<File>(dateien);
-		comboBox.addActionListener(e -> selectFile());
-		comboBox.setBounds(27, 11, 353, 22);
-		panel.add(comboBox);
+		cbFiles = new JComboBox<File>(dateien);
+		cbFiles.addActionListener(e -> selectFile());
+		cbFiles.setBounds(27, 11, 353, 22);
+		cbFiles.setSelectedIndex(0);
+		selectFile();
+		panel.add(cbFiles);
 		
 		btnNewCategory = new JButton("Neue Kategorie");
 		btnNewCategory.addActionListener(e -> newCategory());

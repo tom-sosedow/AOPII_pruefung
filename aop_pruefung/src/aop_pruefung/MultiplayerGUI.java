@@ -44,8 +44,7 @@ public class MultiplayerGUI extends JFrame {
 	private GridBagLayout gbl_contentPane;
 	private GridBagConstraints gbc_panel1, gbc_panel2, gbc_panel3;
 	private ButtonGroup bg1, bg2;
-	private File[] ls = null;
-	private File pfad, actFile;
+	private File actFile;
 	private Map<String, String[]> kategorie = new HashMap<>();
 	private Vector<File> dateien = new Vector<File>();
 	private ArrayList<Integer> fragen = new ArrayList<Integer>();
@@ -57,24 +56,7 @@ public class MultiplayerGUI extends JFrame {
 	private Random random = new Random();
 	
 	/**
-	 * Initialisiert das Fenster und liest alle Dateien aus dem uebergebenen Ordner ein.
-	 * 
-	 * @param pfad Verzeichnis, in dem die Dateien liegen
-	 */
-	public MultiplayerGUI(File pfad) {
-		this.pfad = pfad;
-		initGUI();	
-		ls = this.pfad.listFiles(new FileFilter() {
-			public boolean accept(File f) {
-					return f.isFile()&&f.getName().endsWith(".txt");}});
-		
-		if (ls != null && ls.length != 0) 
-			for(int i = 0; i< ls.length; i++) 
-				dateien.add(ls[i]);	
-	}
-	
-	/**
-	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
+	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files) fuer die Kategorien
 	 * @param files Vektor mit den File-Daten
 	 * @wbp.parser.constructor
 	 */
@@ -98,6 +80,7 @@ public class MultiplayerGUI extends JFrame {
 				spieler1.setBereit(true);
 				lblStatus1.setText("Warte auf Spieler 2");
 				changeRdbtnState(1, false);
+				btnAccept1.setEnabled(false);
 			}
 			else {
 				lblStatus1.setText("Bitte waehle zuerst eine Antwort!");
@@ -109,6 +92,7 @@ public class MultiplayerGUI extends JFrame {
 				spieler2.setBereit(true);
 				lblStatus2.setText("Warte auf Spieler 1");
 				changeRdbtnState(2, false);
+				btnAccept2.setEnabled(false);
 			}
 			else {
 				lblStatus2.setText("Bitte waehle zuerst eine Antwort!");
@@ -149,8 +133,6 @@ public class MultiplayerGUI extends JFrame {
 			spieler2.setBereit(false);
 			spieler1.setAuswahl("");
 			spieler2.setAuswahl("");
-			changeRdbtnState(1, true);
-			changeRdbtnState(2, true);
 			bereit.release();
 		}
 		
@@ -231,21 +213,19 @@ public class MultiplayerGUI extends JFrame {
 							dispose();
 							break;
 						default:
-							rdbtnA1.setEnabled(false);
-							rdbtnB1.setEnabled(false);
-							rdbtnC1.setEnabled(false);
-							rdbtnD1.setEnabled(false);
+							changeRdbtnState(1, false);
 							btnAccept1.setEnabled(false);
-							rdbtnA2.setEnabled(false);
-							rdbtnB2.setEnabled(false);
-							rdbtnC2.setEnabled(false);
-							rdbtnD2.setEnabled(false);
+							changeRdbtnState(2, false);
 							btnAccept2.setEnabled(false);
 							break;
 					}
 				} catch (InterruptedException|IllegalArgumentException|NullPointerException e) {
 					JOptionPane.showMessageDialog(getParent(), "Ein Fehler ist aufgetreten", "Fehler", JOptionPane.ERROR_MESSAGE);
 					dispose();
+				}
+				catch(StopGameException e) {
+					dispose();
+					JOptionPane.showMessageDialog(getParent(), e.getMessage(), "Spiel beendet!", JOptionPane.INFORMATION_MESSAGE);
 				}
 			}
 		};
@@ -265,21 +245,40 @@ public class MultiplayerGUI extends JFrame {
 		refreshQ();
 		bg1.clearSelection();
 		bg2.clearSelection();
+		changeRdbtnState(1, true);
+		changeRdbtnState(2, true);
+		btnAccept1.setEnabled(true);
+		btnAccept2.setEnabled(true);
 	}
 	
 	/**
 	 * Öffnet ein Fenster, in dem Spieler {@code i} eine Kategorie auswaehlen soll.
 	 * @param i Spielernummer
+	 * @throws StopGameException 
 	 */
-	private void selectCat(int i) {
-		while(JOptionPane.showConfirmDialog( null, jcbPopup,"Spieler " + i + ": Bitte waehle eine Kategorie", JOptionPane.OK_OPTION) != JOptionPane.OK_OPTION) {
+	private void selectCat(int i) throws StopGameException {
+		jcbPopup.setSelectedIndex(0);
+		int approve = 0;
+		while(approve == 0) {
+			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Spieler " + i + ": Bitte waehle eine Kategorie (\"Nein\" beendet das Spiel)", JOptionPane.OK_OPTION) == JOptionPane.OK_OPTION) {
+				actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
+				kategorie.clear();
+				readFile(actFile);
+				if(kategorie.keySet().size()>0) {
+					fragen.clear();
+					keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
+					approve = 1;
+				}
+				else {
+					JOptionPane.showMessageDialog(getParent(), "Die gewaehlte Kategorie war leer. Waehle erneut.");
+				}
+				
+			}
+			else {
+				throw new StopGameException("Keine Kategorie gewaehlt!");
+			}
 		}
-		actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
 		lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
-		kategorie.clear();
-		readFile(actFile);
-		fragen.clear();
-		keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste	
 	}
 	
 	/**
@@ -377,6 +376,11 @@ public class MultiplayerGUI extends JFrame {
 		
 		lblStatus1 = new JLabel("");
 		panel1.add(lblStatus1);
+		
+		splitPaneA1.setEnabled(false);
+		splitPaneB1.setEnabled(false);
+		splitPaneC1.setEnabled(false);
+		splitPaneD1.setEnabled(false);
 		
 	}
 	
@@ -480,6 +484,11 @@ public class MultiplayerGUI extends JFrame {
 		
 		lblStatus2 = new JLabel("");
 		panel3.add(lblStatus2);
+		
+		splitPaneA2.setEnabled(false);
+		splitPaneB2.setEnabled(false);
+		splitPaneC2.setEnabled(false);
+		splitPaneD2.setEnabled(false);
 	}
 	
 	/**
