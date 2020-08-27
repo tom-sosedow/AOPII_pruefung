@@ -69,12 +69,6 @@ public class SingleplayerGUI extends JFrame {
 		
 		spieler1 = new Spieler();
 		spieler2 = new Spieler();
-		
-		String[] array = new String[dateien.size()];
-		for(int i = 0; i< dateien.size(); i++) {
-			array[i] = dateien.elementAt(i).getName().replace(".txt", "");		
-		}
-		jcbPopup = new JComboBox<String>(array);
 
 		jcbDiff = new JComboBox<String>(diffs);
 		jcbDiff.setSelectedIndex(0);
@@ -248,7 +242,7 @@ public class SingleplayerGUI extends JFrame {
 		jcbPopup.setSelectedIndex(0);
 		int approve = 0;
 		while(approve == 0) {
-			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.OK_OPTION) == 0) {
+			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.OK_OPTION) == JOptionPane.OK_OPTION) {
 				actKat = jcbPopup.getSelectedIndex();
 				actFile = dateien.elementAt(actKat);
 				kategorie.clear();

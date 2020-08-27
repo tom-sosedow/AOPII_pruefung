@@ -47,9 +47,10 @@ public class MultiplayerGUI extends JFrame {
 	private File actFile;
 	private Map<String, String[]> kategorie = new HashMap<>();
 	private Vector<File> dateien = new Vector<File>();
-	private ArrayList<Integer> fragen = new ArrayList<Integer>();
-	private JComboBox<File> jcbPopup; 
+	private Map<Integer, ArrayList<Integer>> history = new HashMap<>(); //speichert die Information, welche Fragen aus welche Kategorie schon dran waren.
+	private JComboBox<String> jcbPopup; 
 	private String[] keys;
+	private int actKat;
 	private String actFrage ="";
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
@@ -58,11 +59,26 @@ public class MultiplayerGUI extends JFrame {
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files) fuer die Kategorien
 	 * @param files Vektor mit den File-Daten
-	 * @wbp.parser.constructor
+	 * 
 	 */
 	public MultiplayerGUI(Vector<File> files) {
 		this.dateien = files;
 		initGUI();
+		
+		spieler1 = new Spieler();
+		spieler2 = new Spieler();
+		
+		String[] array = new String[dateien.size()];
+		for(int i = 0; i< dateien.size(); i++) {
+			array[i] = dateien.elementAt(i).getName().replace(".txt", "");		
+		}
+		jcbPopup = new JComboBox<String>(array);
+		
+		try {
+			bereit.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -261,11 +277,14 @@ public class MultiplayerGUI extends JFrame {
 		int approve = 0;
 		while(approve == 0) {
 			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Spieler " + i + ": Bitte waehle eine Kategorie (\"Nein\" beendet das Spiel)", JOptionPane.OK_OPTION) == JOptionPane.OK_OPTION) {
-				actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
+				actKat = jcbPopup.getSelectedIndex();
+				actFile = dateien.elementAt(actKat);
 				kategorie.clear();
 				readFile(actFile);
 				if(kategorie.keySet().size()>0) {
-					fragen.clear();
+					if(!history.containsKey(actKat)) {
+						history.put(actKat, new ArrayList<Integer>());
+					}
 					keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
 					approve = 1;
 				}
@@ -287,10 +306,21 @@ public class MultiplayerGUI extends JFrame {
 	 */
 	private void refreshQ() throws NullPointerException{
 		int z;
-		do{
-			z = random.nextInt(keys.length);
-		}while(fragen.contains(z));
-		fragen.add(z);
+		if(history.get(actKat).size()<kategorie.keySet().size()) { // wenn noch ungenutzte Fragen uebrig
+			do{
+				z = random.nextInt(keys.length);
+			}while(history.get(actKat).contains(z));
+		}
+		else {
+			int temp = history.get(actKat).get(history.get(actKat).size()-1); //merke den Index der zuletzt gestellten Frage
+			history.put(actKat, new ArrayList<Integer>());
+			history.get(actKat).add(temp); 
+			do{
+				z = random.nextInt(keys.length);
+			}while(z == temp);
+		}
+		
+		history.get(actKat).add(z);
 		actFrage = keys[z];
 		lblFrage1.setText("<html><p>" + actFrage + "</p></html>");
 		rdbtnA1.setText(kategorie.get(keys[z])[0]);
@@ -552,10 +582,7 @@ public class MultiplayerGUI extends JFrame {
 		initPanel1();
 		initPanel2();
 		initPanel3();
-		
-		spieler1 = new Spieler();
-		spieler2 = new Spieler();
-		
+
 		bg1 = new ButtonGroup();
 		bg2 = new ButtonGroup();
 		bg1.add(rdbtnA1);
@@ -566,12 +593,5 @@ public class MultiplayerGUI extends JFrame {
 		bg2.add(rdbtnB2);
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
-		
-		jcbPopup = new JComboBox<File>(dateien);
-		try {
-			bereit.acquire();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 	}
 }
