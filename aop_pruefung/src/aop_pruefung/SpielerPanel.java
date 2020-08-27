@@ -16,7 +16,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JSplitPane;
 
 public class SpielerPanel extends JPanel{
-	private Spieler spieler = new Spieler();
+	private Spiel spiel = new Spiel();
 	private Semaphore bereit = new Semaphore(1, true);
 	private JPanel panel = new JPanel();
 	private JLabel lblA, lblB, lblC, lblD, lblStatus, lblFrage;
@@ -25,15 +25,8 @@ public class SpielerPanel extends JPanel{
 	private JButton btnAccept;
 	private ButtonGroup bg;
 	
-	public SpielerPanel() {
-//		GridBagConstraints gbc_panel = new GridBagConstraints();
-//		gbc_panel.fill = GridBagConstraints.BOTH;
-//		gbc_panel.gridx = 0;
-//		gbc_panel.gridy = 0;
-//		gbc_panel.weightx = 0.5;
-//		JPanel contentPane = new JPanel();
-		
-		//contentPane.add(panel, gbc_panel);
+	public SpielerPanel(Spiel spiel) {
+		this.spiel = spiel;
 		panel.setLayout(new GridLayout(7, 1, 0, 0));
 		
 		lblFrage = new JLabel("Frage:");
@@ -98,7 +91,6 @@ public class SpielerPanel extends JPanel{
 		try {
 			bereit.acquire();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -109,12 +101,107 @@ public class SpielerPanel extends JPanel{
 	
 	public void getAuswertung() throws InterruptedException {
 		bereit.acquire();
-		
+		if(spieler.getAuswahl().equals("")) {
+			lblStatus.setText("Bitte waehle zuerst eine Antwort!");
+			return;
+		}
+		if(spieler.getAuswahl().equals(kategorie.get(actFrage)[4])) {
+			spieler.setPunkte(spieler.getPunkte()+);
+			lblScore.setText(spieler.getPunkte() + ":" + spieler.getPunkte());
+			lblStatus.setText("<HTML><BODY BGCOLOR=#4EFF0>Richtig!</BODY></HTML>");
+			executor.schedule(() -> {
+				lblStatus.setText("");
+		    }, 3, TimeUnit.SECONDS);
+		}
+		else {
+			lblStatus.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
+			executor.schedule(() -> {
+				lblStatus.setText("");
+		    }, 3, TimeUnit.SECONDS);
+		}
+		if(spieler.getAuswahl().equals(kategorie.get(actFrage)[4])) {
+			spieler.setPunkte(spieler.getPunkte()+);
+			lblScore.setText(spieler.getPunkte() + ":" + spieler.getPunkte());
+			lblStatus.setText("<HTML><BODY BGCOLOR=#4EFF0>Richtig!</BODY></HTML>");
+			executor.schedule(() -> {
+				lblStatus.setText("");
+		    }, 3, TimeUnit.SECONDS);
+		}
+		else {
+			lblStatus.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
+			executor.schedule(() -> {
+				lblStatus.setText("");
+		    }, 3, TimeUnit.SECONDS);
+		}
+		spieler.setAuswahl("");
 	}
 	public JPanel getPanel() {
 		return panel;
 	}
+
+	public JLabel getLblA() {
+		return lblA;
+	}
+
+	public void setLblA(JLabel lblA) {
+		this.lblA = lblA;
+	}
+
+	public JLabel getLblB() {
+		return lblB;
+	}
+
+	public void setLblB(JLabel lblB) {
+		this.lblB = lblB;
+	}
+
+	public JLabel getLblC() {
+		return lblC;
+	}
+
+	public void setLblC(JLabel lblC) {
+		this.lblC = lblC;
+	}
+
+	public JLabel getLblD() {
+		return lblD;
+	}
+
+	public void setLblD(JLabel lblD) {
+		this.lblD = lblD;
+	}
+
+	public JLabel getLblStatus() {
+		return lblStatus;
+	}
+
+	public void setLblStatus(JLabel lblStatus) {
+		this.lblStatus = lblStatus;
+	}
+
+	public JLabel getLblFrage() {
+		return lblFrage;
+	}
+
+	public void setLblFrage(JLabel lblFrage) {
+		this.lblFrage = lblFrage;
+	}
+
+	public JButton getBtnAccept() {
+		return btnAccept;
+	}
+
+	public ButtonGroup getBg() {
+		return bg;
+	}
+
+	public void setBg(ButtonGroup bg) {
+		this.bg = bg;
+	}
 	
+	public Spieler getSpieler() {
+		return spieler;
+	}
 	/*
 	  if(spieler.getAuswahl().equals("")) {
 			lblStatus.setText("Bitte waehle zuerst eine Antwort!");
