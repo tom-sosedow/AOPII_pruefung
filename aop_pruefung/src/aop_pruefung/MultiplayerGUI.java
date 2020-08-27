@@ -347,13 +347,14 @@ public class MultiplayerGUI extends JFrame {
 	 * JLabel lblStatus1
 	 */
 	private void initPanel1() {
-		panel1 = new JPanel();
+		//panel1 = new JPanel();
 		gbc_panel1 = new GridBagConstraints();
 		gbc_panel1.insets = new Insets(0, 0, 0, 5);
 		gbc_panel1.fill = GridBagConstraints.BOTH;
 		gbc_panel1.gridx = 0;
 		gbc_panel1.gridy = 0;
 		gbc_panel1.weightx = 0.5;
+		
 		contentPane.add(panel1, gbc_panel1);
 		panel1.setLayout(new GridLayout(7, 1, 0, 0));
 		
@@ -412,6 +413,9 @@ public class MultiplayerGUI extends JFrame {
 		splitPaneC1.setEnabled(false);
 		splitPaneD1.setEnabled(false);
 		
+		
+//		SpielerPanel sp1 = new SpielerPanel();
+//		contentPane.add(sp1.getPanel(), gbc_panel1);
 	}
 	
 	/**
@@ -578,7 +582,7 @@ public class MultiplayerGUI extends JFrame {
 		gbl_contentPane.columnWeights = new double[]{1.0, 1.0, 1.0, Double.MIN_VALUE};
 		gbl_contentPane.rowWeights = new double[]{1.0, Double.MIN_VALUE};
 		contentPane.setLayout(gbl_contentPane);
-		
+
 		initPanel1();
 		initPanel2();
 		initPanel3();

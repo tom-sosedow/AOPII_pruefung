@@ -80,9 +80,17 @@ public class SingleplayerGUI extends JFrame {
 			diff = 4;
 		}
 		
+		String[] array = new String[dateien.size()];
+		for(int i = 0; i< dateien.size(); i++) {
+			array[i] = dateien.elementAt(i).getName().replace(".txt", "");		
+		}
+		jcbPopup = new JComboBox<String>(array);
+		
+		
 		try {
 			bereit.acquire();
 		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -96,6 +104,7 @@ public class SingleplayerGUI extends JFrame {
 			return;
 		}
 		if(spieler1.getAuswahl().equals(kategorie.get(actFrage)[4])) {
+			btnAccept1.setEnabled(false);
 			spieler1.setPunkte(spieler1.getPunkte()+1);
 			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 			lblStatus1.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
@@ -222,15 +231,16 @@ public class SingleplayerGUI extends JFrame {
 	 * Stellt eine neue Frage und stellt den Wartezustand auf die Eingabe des Nutzers her. Der Bot waehlt seine Antwort.
 	 */
 	private void askQ() {
-//		try {
-//			TimeUnit.SECONDS.sleep(3);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
+		try {
+			TimeUnit.SECONDS.sleep(3);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		lblStatus.setText("");
 		refreshQ();
 		bg1.clearSelection();
 		bg2.clearSelection();
+		btnAccept1.setEnabled(true);
 		auswahlBot(diff);
 	}
 	

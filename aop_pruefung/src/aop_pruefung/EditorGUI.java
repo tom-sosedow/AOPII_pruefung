@@ -36,10 +36,8 @@ import java.awt.event.MouseEvent;
 
 public class EditorGUI extends JFrame {
 
-	private JPanel contentPane;
 	private Map<String, String[]> kategorie = new HashMap<>();
 	private File actFile;
-	private JPanel panel;
 	private JLabel lblFragen, lblrAntwort, lblA, lblB, lblC, lblD;
 	private JButton btnSave, btnAddQ, btnAccept, btnDelete, btnNewCategory;
 	private JComboBox<File> cbFiles;
@@ -264,73 +262,66 @@ public class EditorGUI extends JFrame {
 	private void initGUI() {
 		setTitle("Editor");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 986, 551);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
-		setContentPane(contentPane);
-		
-		panel = new JPanel();
-		contentPane.add(panel, BorderLayout.CENTER);
-		panel.setLayout(null);
+		setBounds(100, 100, 986, 551);	
+		this.setLayout(null);
 		
 		lblFragen = new JLabel("Fragen:");
 		lblFragen.setBounds(27, 50, 46, 14);
-		panel.add(lblFragen);
+		this.add(lblFragen);
 		
 		textArea_A = new JTextArea();
 		textArea_A.setText("Antwort 1");
 		textArea_A.setBounds(599, 75, 351, 65);
 		textArea_A.setLineWrap(true);
-		panel.add(textArea_A);
+		this.add(textArea_A);
 		
 		textArea_B = new JTextArea();
 		textArea_B.setText("Antwort 2");
 		textArea_B.setBounds(599, 151, 351, 65);
 		textArea_B.setLineWrap(true);
-		panel.add(textArea_B);
+		this.add(textArea_B);
 		
 		textArea_C = new JTextArea();
 		textArea_C.setText("Antwort 3");
 		textArea_C.setBounds(599, 227, 351, 65);
 		textArea_C.setLineWrap(true);
-		panel.add(textArea_C);
+		this.add(textArea_C);
 		
 		textArea_D = new JTextArea();
 		textArea_D.setText("Antwort 4");
 		textArea_D.setBounds(599, 303, 351, 65);
 		textArea_D.setLineWrap(true);
-		panel.add(textArea_D);
+		this.add(textArea_D);
 		
 		cbRAntwort = new JComboBox<String>(ABCD);
 		cbRAntwort.setBounds(599, 400, 121, 22);
-		panel.add(cbRAntwort);
+		this.add(cbRAntwort);
 		
 		lblrAntwort = new JLabel("Richtige Antwort:");
 		lblrAntwort.setBounds(599, 379, 121, 14);
-		panel.add(lblrAntwort);
+		this.add(lblrAntwort);
 		
 		lblA = new JLabel("A:");
 		lblA.setBounds(558, 80, 31, 14);
-		panel.add(lblA);
+		this.add(lblA);
 		
 		lblB = new JLabel("B:");
 		lblB.setBounds(558, 156, 31, 14);
-		panel.add(lblB);
+		this.add(lblB);
 		
 		lblC = new JLabel("C:");
 		lblC.setBounds(558, 232, 31, 14);
-		panel.add(lblC);
+		this.add(lblC);
 		
 		lblD = new JLabel("D:");
 		lblD.setBounds(558, 308, 31, 14);
-		panel.add(lblD);
+		this.add(lblD);
 		
 		textArea_Frage = new JTextArea();
 		textArea_Frage.setBounds(558, 10, 392, 56);
 		textArea_Frage.setText("(Frage)");
 		textArea_Frage.setLineWrap(true);
-		panel.add(textArea_Frage);
+		this.add(textArea_Frage);
 		
 		list.addMouseListener(new MouseAdapter() {
 			@Override
@@ -341,39 +332,39 @@ public class EditorGUI extends JFrame {
 		
 		scrollPane = new JScrollPane();
 		scrollPane.setBounds(27, 75, 500, 348);
-		panel.add(scrollPane);
+		this.add(scrollPane);
 		scrollPane.setViewportView(list);
 		
 		btnSave = new JButton("Datei speichern");
 		btnSave.addActionListener(e -> saveFile());
 		btnSave.setBounds(390, 11, 137, 23);
-		panel.add(btnSave);
+		this.add(btnSave);
 		
 		btnAddQ = new JButton("Frage hinzufuegen");
 		btnAddQ.addActionListener(e -> addQ());
 		btnAddQ.setBounds(27, 448, 168, 23);
-		panel.add(btnAddQ);
+		this.add(btnAddQ);
 
 		btnAccept = new JButton("Bestaetigen");
 		btnAccept.setBounds(739, 400, 121, 23);
 		btnAccept.addActionListener(e -> modifyQ());
-		panel.add(btnAccept);
+		this.add(btnAccept);
 		
 		btnDelete = new JButton("Frage loeschen");
 		btnDelete.addActionListener(e -> deleteQ());
 		btnDelete.setBounds(359, 448, 168, 23);
-		panel.add(btnDelete);
+		this.add(btnDelete);
 				
 		cbFiles = new JComboBox<File>(dateien);
 		cbFiles.addActionListener(e -> selectFile());
 		cbFiles.setBounds(27, 11, 353, 22);
 		cbFiles.setSelectedIndex(0);
 		selectFile();
-		panel.add(cbFiles);
+		this.add(cbFiles);
 		
 		btnNewCategory = new JButton("Neue Kategorie");
 		btnNewCategory.addActionListener(e -> newCategory());
 		btnNewCategory.setBounds(390, 46, 137, 23);
-		panel.add(btnNewCategory);
+		this.add(btnNewCategory);
 	}
 }
