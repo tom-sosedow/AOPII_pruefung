@@ -153,12 +153,12 @@ public class EditorGUI extends JFrame {
 	private void newCategory() {
 		String name = JOptionPane.showInputDialog("Gib den Namen der neuen Kategorie ein:");
 		File datei;
-		textArea_Frage.setText("(Frage)");
-		textArea_A.setText("");
-		textArea_B.setText("");
-		textArea_C.setText("");
-		textArea_D.setText("");
 		if(name != null && name != "") {
+			textArea_Frage.setText("(Frage)");
+			textArea_A.setText("");
+			textArea_B.setText("");
+			textArea_C.setText("");
+			textArea_D.setText("");
 			datei = new File(dateien.elementAt(0).getParent()+"\\"+name+".txt");
 			try {
 				datei.createNewFile();

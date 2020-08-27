@@ -43,8 +43,7 @@ public class SingleplayerGUI extends JFrame {
 	private GridBagLayout gbl_contentPane;
 	private GridBagConstraints gbc_panel1, gbc_panel2, gbc_panel3;
 	private ButtonGroup bg1, bg2;
-	private File[] ls = null;
-	private File pfad, actFile;
+	private File actFile;
 	private Map<String, String[]> kategorie = new HashMap<>(); //Beinhaltet alle Fragen, dazugehoerige Antworten und die richtige Antwort
 	private Vector<File> dateien = new Vector<File>();
 	private JComboBox<String> jcbPopup; 
@@ -53,10 +52,9 @@ public class SingleplayerGUI extends JFrame {
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
 	private Random random = new Random();
-	private float diff;
+	private int diff, actKat;
 	private String[] diffs = {"Leicht", "Mittel", "Schwer", "Dr. Kawashima"};
-	private ArrayList<Integer> fragen = new ArrayList<Integer>(); //Indizes der Fragen, die in der derzeitigen Kategorie bereits dran kamen
-	private ArrayList<Integer> history = new ArrayList<Integer>(); //Indizes der Kategorien, die in der aktuellen Partie bereits dran kamen
+	private Map<Integer, ArrayList<Integer>> history = new HashMap<>(); //speichert die Information, welche Fragen aus welche Kategorie schon dran waren.
 	private String actFrage ="";
 	ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	
@@ -68,6 +66,30 @@ public class SingleplayerGUI extends JFrame {
 	public SingleplayerGUI(Vector<File> files) {
 		this.dateien = files;
 		initGUI();
+		
+		spieler1 = new Spieler();
+		spieler2 = new Spieler();
+		
+		String[] array = new String[dateien.size()];
+		for(int i = 0; i< dateien.size(); i++) {
+			array[i] = dateien.elementAt(i).getName().replace(".txt", "");		
+		}
+		jcbPopup = new JComboBox<String>(array);
+
+		jcbDiff = new JComboBox<String>(diffs);
+		jcbDiff.setSelectedIndex(0);
+		JOptionPane.showMessageDialog( null, jcbDiff, "Wie schlau soll dein Gegner sein?", JOptionPane.QUESTION_MESSAGE);
+		if(jcbDiff.getSelectedIndex() != -1) {
+			diff = jcbDiff.getSelectedIndex();
+		}
+		else {
+			diff = 4;
+		}
+		
+		try {
+			bereit.acquire();
+		} catch (InterruptedException e) {
+		}
 	}
 	
 	/**
@@ -119,7 +141,7 @@ public class SingleplayerGUI extends JFrame {
 		Runnable spielen = new Runnable() {
 			@Override public void run() {
 				try {
-					int z;
+					
 					//3 Runden
 					for(int a = 0; a < 3; a++) {
 						selectCat(); //Kategorie waehlen
@@ -143,18 +165,17 @@ public class SingleplayerGUI extends JFrame {
 						//Bot waehlt Kategorie die vorher noch nicht dran war, ausser es waren schon alle dran, dann wird wieder zufaellig gewaehlt. 
 						
 						do {
-							z = random.nextInt(dateien.size());
-							actFile = dateien.elementAt(z);
-						} while(history.contains(z) && !(history.size()>=dateien.size()));
-						if(history.size()>=dateien.size()) {
+							actKat = random.nextInt(dateien.size());
+							actFile = dateien.elementAt(actKat);
+						} while(history.containsKey(actKat) && !(history.keySet().size()>=dateien.size()));
+						if(history.keySet().size()>=dateien.size()) {
 							history.clear();
 						}
-						history.add(z);
+						history.put(actKat, new ArrayList<Integer>());
 						kategorie.clear();
 						readFile(actFile); // Rueckgabewert entgegen nehmen in while
 						lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
-						fragen.clear();
 						
 						//1 Frage der neuen Kategorie
 						askQ();
@@ -170,7 +191,7 @@ public class SingleplayerGUI extends JFrame {
 						
 					}
 					
-					z = 1;
+					int z = 1;
 					if(spieler1.getPunkte() > spieler2.getPunkte())
 						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 1 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					else if(spieler1.getPunkte() < spieler2.getPunkte())
@@ -207,11 +228,11 @@ public class SingleplayerGUI extends JFrame {
 	 * Stellt eine neue Frage und stellt den Wartezustand auf die Eingabe des Nutzers her. Der Bot waehlt seine Antwort.
 	 */
 	private void askQ() {
-		try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			TimeUnit.SECONDS.sleep(3);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 		lblStatus.setText("");
 		refreshQ();
 		bg1.clearSelection();
@@ -228,12 +249,14 @@ public class SingleplayerGUI extends JFrame {
 		int approve = 0;
 		while(approve == 0) {
 			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.OK_OPTION) == 0) {
-				actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
+				actKat = jcbPopup.getSelectedIndex();
+				actFile = dateien.elementAt(actKat);
 				kategorie.clear();
 				readFile(actFile);
 				if(kategorie.keySet().size()>0) {
-					fragen.clear();
-					history.add(jcbPopup.getSelectedIndex());
+					if(!history.containsKey(actKat)) {
+						history.put(actKat, new ArrayList<Integer>());
+					}
 					approve = 1;
 				}
 				else {
@@ -247,46 +270,32 @@ public class SingleplayerGUI extends JFrame {
 		}
 		lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 		
-		
-		/*
-		if(jcbPopup.getSelectedIndex() != -1) {
-			do {
-				actFile = dateien.elementAt(jcbPopup.getSelectedIndex());
-				lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
-				kategorie.clear();
-				readFile(actFile);
-				if(kategorie.keySet().size()>0) {
-					fragen.clear();
-					history.add(jcbPopup.getSelectedIndex());
-				}
-				else {
-					JOptionPane.showMessageDialog( null, jcbPopup, "Die gewaehlte Kategorie war leer. Waehle erneut.", JOptionPane.WARNING_MESSAGE);
-				}
-			}while(jcbPopup.getSelectedIndex() == -1 || kategorie.keySet().size()<= 0);
-		}
-		*/
-		
 	}
 	
 	/**
 	 * Waehlt eine zufaellige naechste Frage (die noch nicht gestellt wurde) und zeigt 
 	 * sie mit den Antwortmoeglichkeiten in allen entsprechenden Feldern an
 	 * 
+	 * @throws NullPointerException
 	 * @see MuliplayerGUI
 	 */
 	private void refreshQ() throws NullPointerException{
 		int z;
-		if(fragen.size()<kategorie.keySet().size()) {
+		if(history.get(actKat).size()<kategorie.keySet().size()) { // wenn noch ungenutzte Fragen uebrig
 			do{
-			z = random.nextInt(keys.length);
-			}while(fragen.contains(z));
+				z = random.nextInt(keys.length);
+			}while(history.get(actKat).contains(z));
 		}
 		else {
-			fragen.clear();
-			z = random.nextInt(keys.length);
+			int temp = history.get(actKat).get(history.get(actKat).size()-1); //merke den Index der zuletzt gestellten Frage
+			history.put(actKat, new ArrayList<Integer>());
+			history.get(actKat).add(temp); 
+			do{
+				z = random.nextInt(keys.length);
+			}while(z == temp);
 		}
 		
-		fragen.add(z);
+		history.get(actKat).add(z);
 		actFrage = keys[z];
 		lblFrage1.setText("<html><p>" + actFrage + "</p></html>");
 		rdbtnA1.setText(kategorie.get(keys[z])[0]);
@@ -606,9 +615,6 @@ public class SingleplayerGUI extends JFrame {
 		initPanel2();
 		initPanel3();
 		
-		spieler1 = new Spieler();
-		spieler2 = new Spieler();
-		
 		bg1 = new ButtonGroup();
 		bg2 = new ButtonGroup();
 		bg1.add(rdbtnA1);
@@ -620,24 +626,6 @@ public class SingleplayerGUI extends JFrame {
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
 		
-		String[] array = new String[dateien.size()];
-		for(int i = 0; i< dateien.size(); i++) {
-			array[i] = dateien.elementAt(i).getName().replace(".txt", "");		
-		}
-		jcbPopup = new JComboBox<String>(array);
 
-		jcbDiff = new JComboBox<String>(diffs);
-		jcbDiff.setSelectedIndex(0);
-		JOptionPane.showMessageDialog( null, jcbDiff, "Wie schlau soll dein Gegner sein?", JOptionPane.QUESTION_MESSAGE);
-		if(jcbDiff.getSelectedIndex() != -1) {
-			diff = jcbDiff.getSelectedIndex();
-		}
-		else {
-			diff = 4;
-		}
-		try {
-			bereit.acquire();
-		} catch (InterruptedException e) {
-		}
 	}
 }
