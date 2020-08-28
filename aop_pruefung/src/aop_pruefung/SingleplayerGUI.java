@@ -13,7 +13,6 @@ import javax.swing.ButtonGroup;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,16 +51,16 @@ public class SingleplayerGUI extends JFrame {
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
 	private Random random = new Random();
-	private int diff, actKat;
+	private int diff, actKat, runde = 1, frage = 1;
 	private String[] diffs = {"Leicht", "Mittel", "Schwer", "Dr. Kawashima"};
 	private Map<Integer, ArrayList<Integer>> history = new HashMap<>(); //speichert die Information, welche Fragen aus welche Kategorie schon dran waren.
 	private String actFrage ="";
-	ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+	private JFrame frame = this;
+	private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files) fuer die Kategorien
 	 * @param dateien Vektor mit den Dateien
-	 * @wbp.parser.constructor
 	 */
 	public SingleplayerGUI(Vector<File> files) {
 		this.dateien = files;
@@ -104,33 +103,34 @@ public class SingleplayerGUI extends JFrame {
 			return;
 		}
 		if(spieler1.getAuswahl().equals(kategorie.get(actFrage)[4])) {
-			btnAccept1.setEnabled(false);
 			spieler1.setPunkte(spieler1.getPunkte()+1);
 			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 			lblStatus1.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 			executor.schedule(() -> {
 				lblStatus1.setText("");
-		    }, 3, TimeUnit.SECONDS);
+		    }, 2, TimeUnit.SECONDS);
 		}
 		else {
 			lblStatus1.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 			executor.schedule(() -> {
 				lblStatus1.setText("");
-		    }, 3, TimeUnit.SECONDS);
+		    }, 2, TimeUnit.SECONDS);
 		}
+		btnAccept1.setEnabled(false);
+		changeRdbtnState(false);
 		if(spieler2.getAuswahl().equals(kategorie.get(actFrage)[4])) {
 			spieler2.setPunkte(spieler2.getPunkte()+1);
 			lblScore.setText(spieler1.getPunkte() + ":" + spieler2.getPunkte());
 			lblStatus2.setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 			executor.schedule(() -> {
 				lblStatus2.setText("");
-		    }, 3, TimeUnit.SECONDS);
+		    }, 2, TimeUnit.SECONDS);
 		}
 		else {
 			lblStatus2.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 			executor.schedule(() -> {
 				lblStatus2.setText("");
-		    }, 3, TimeUnit.SECONDS);
+		    }, 2, TimeUnit.SECONDS);
 		}
 		spieler1.setAuswahl("");
 		bereit.release();
@@ -144,12 +144,11 @@ public class SingleplayerGUI extends JFrame {
 		Runnable spielen = new Runnable() {
 			@Override public void run() {
 				try {
-					
 					//3 Runden
 					for(int a = 0; a < 3; a++) {
 						selectCat(); //Kategorie waehlen
-						keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
-						
+						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
+						updateTitle();
 						//erste Frage
 						refreshQ();
 						lblStatus.setText("");
@@ -161,46 +160,62 @@ public class SingleplayerGUI extends JFrame {
 						for(int i = 0; i<2; i++) {
 							lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 							askQ();
+							updateTitle();
 							bereit.acquire();
 						}
 						lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 						
 						//Bot waehlt Kategorie die vorher noch nicht dran war, ausser es waren schon alle dran, dann wird wieder zufaellig gewaehlt. 
-						
-						do {
+
+						Boolean approve = false;
+						while(!approve) {
+							do {
 							actKat = random.nextInt(dateien.size());
 							actFile = dateien.elementAt(actKat);
-						} while(history.containsKey(actKat) && !(history.keySet().size()>=dateien.size()));
-						if(history.keySet().size()>=dateien.size()) {
-							history.clear();
+							} while(history.containsKey(actKat) && history.keySet().size()<dateien.size());
+							kategorie.clear();
+							readFile(actFile);
+							if(kategorie.keySet().size()>2) {
+								if(history.keySet().size()>=dateien.size()) {
+									history.clear();
+								}
+								if(!history.containsKey(actKat)) {
+									history.put(actKat, new ArrayList<Integer>());
+								}
+								lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
+								keys = kategorie.keySet().toArray(new String[kategorie.size()]);
+								approve = true;
+							}
+							else {
+								history.put(actKat, new ArrayList<Integer>()); //verhindern einer Endlosschleife
+							}
 						}
-						history.put(actKat, new ArrayList<Integer>());
-						kategorie.clear();
-						readFile(actFile); // Rueckgabewert entgegen nehmen in while
-						lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
-						keys = kategorie.keySet().toArray(new String[kategorie.size()]);
-						
+
 						//1 Frage der neuen Kategorie
 						askQ();
+						updateTitle();
 						bereit.acquire();
 						//naechste 2 Fragen
 						for(int i = 0; i<2; i++) {
 							lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 							askQ();
+							updateTitle();
 							bereit.acquire();
 						}
 						lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 						TimeUnit.SECONDS.sleep(2);
+						runde++;
+						frage = 1;
 						
 					}
 					
 					int z = 1;
 					if(spieler1.getPunkte() > spieler2.getPunkte())
-						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 1 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 1 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ja.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					else if(spieler1.getPunkte() < spieler2.getPunkte())
-						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 2 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 2 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ja.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					else
-						z = JOptionPane.showConfirmDialog(getParent(), "<html>Gleichstand! Was fuer ein Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Gleichstand! Was fuer ein Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ja.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					
 					switch(z) {
 						case 0:
@@ -215,7 +230,7 @@ public class SingleplayerGUI extends JFrame {
 							break;
 					}
 				} catch (InterruptedException|IllegalArgumentException|NullPointerException e) { 
-					e.printStackTrace();
+					dispose();
 					JOptionPane.showMessageDialog(getParent(), "Ein Fehler ist aufgetreten", "Fehler", JOptionPane.ERROR_MESSAGE);
 				}
 				catch(StopGameException e) {
@@ -232,7 +247,7 @@ public class SingleplayerGUI extends JFrame {
 	 */
 	private void askQ() {
 		try {
-			TimeUnit.SECONDS.sleep(3);
+			TimeUnit.SECONDS.sleep(2);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -240,7 +255,6 @@ public class SingleplayerGUI extends JFrame {
 		refreshQ();
 		bg1.clearSelection();
 		bg2.clearSelection();
-		btnAccept1.setEnabled(true);
 		auswahlBot(diff);
 	}
 	
@@ -250,30 +264,32 @@ public class SingleplayerGUI extends JFrame {
 	 */
 	private void selectCat() throws StopGameException {
 		jcbPopup.setSelectedIndex(0);
-		int approve = 0;
-		while(approve == 0) {
-			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Bitte waehle eine Kategorie", JOptionPane.OK_OPTION) == JOptionPane.OK_OPTION) {
+		Boolean approve = false;
+		while(!approve) {
+			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Bitte waehle eine Kategorie (\"Nein\" beendet das Spiel!)", JOptionPane.OK_OPTION) == JOptionPane.OK_OPTION) {
 				actKat = jcbPopup.getSelectedIndex();
 				actFile = dateien.elementAt(actKat);
 				kategorie.clear();
 				readFile(actFile);
-				if(kategorie.keySet().size()>0) {
+				if(kategorie.keySet().size()>2) {
+					if(history.keySet().size()>=dateien.size()) {
+						history.clear();
+					}
 					if(!history.containsKey(actKat)) {
 						history.put(actKat, new ArrayList<Integer>());
 					}
-					approve = 1;
+					lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
+					keys = kategorie.keySet().toArray(new String[kategorie.size()]);
+					approve = true;
 				}
 				else {
-					JOptionPane.showMessageDialog(getParent(), "Die gewaehlte Kategorie war leer. Waehle erneut.");
+					JOptionPane.showMessageDialog(getParent(), "Die gewaehlte Kategorie ist leer oder beinhaltet zu wenige Fragen. Waehle erneut.");
 				}
-				
 			}
 			else {
 				throw new StopGameException("Keine Kategorie gewaehlt!");
 			}
 		}
-		lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
-		
 	}
 	
 	/**
@@ -298,7 +314,8 @@ public class SingleplayerGUI extends JFrame {
 				z = random.nextInt(keys.length);
 			}while(z == temp);
 		}
-		
+		btnAccept1.setEnabled(true);
+		changeRdbtnState(true);
 		history.get(actKat).add(z);
 		actFrage = keys[z];
 		lblFrage1.setText("<html><p>" + actFrage + "</p></html>");
@@ -313,6 +330,13 @@ public class SingleplayerGUI extends JFrame {
 		rdbtnC2.setText(kategorie.get(keys[z])[2]);
 		rdbtnD2.setText(kategorie.get(keys[z])[3]);
 		
+	}
+	
+	private void changeRdbtnState(Boolean b) {
+		rdbtnA1.setEnabled(b);
+		rdbtnB1.setEnabled(b);
+		rdbtnC1.setEnabled(b);
+		rdbtnD1.setEnabled(b);
 	}
 	
 	/**
@@ -629,7 +653,13 @@ public class SingleplayerGUI extends JFrame {
 		bg2.add(rdbtnB2);
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
-		
-
+	}
+	
+	/**
+	 * Updated den titel, sodass die aktuelle Runde und Fragennummer angezeigt wird
+	 */
+	private void updateTitle() {
+		frame.setTitle("Runde: " + runde + " | Frage: " + frage); 
+		frage++; 
 	}
 }

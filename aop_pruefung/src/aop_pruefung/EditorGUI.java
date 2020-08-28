@@ -53,7 +53,6 @@ public class EditorGUI extends JFrame {
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
 	 * @param files Vektor mit den File-Daten
-	 * @wbp.parser.constructor
 	 */
 	public EditorGUI(Vector<File> dateien) {
 		this.dateien = dateien;
@@ -77,7 +76,7 @@ public class EditorGUI extends JFrame {
 			writer.close();
 			ostream.close();
 		}
-		catch(IOException e2) {
+		catch(IOException e) {
 			System.out.println("Fehler");
 		}
 	}
@@ -91,7 +90,7 @@ public class EditorGUI extends JFrame {
 		if(modus == 0) {
 			btnAddQ.setText("Abbrechen");
 			list.clearSelection();
-			textArea_Frage.setText("(Frage)");
+			textArea_Frage.setText("");
 			textArea_A.setText("");
 			textArea_B.setText("");
 			textArea_C.setText("");
@@ -145,14 +144,14 @@ public class EditorGUI extends JFrame {
 	}
 	
 	/**
-	 * Öffnet ein Fenster, in dem der Name einer neuen Kategorie eingegeben werden kann.
+	 * Oeffnet ein Fenster, in dem der Name einer neuen Kategorie eingegeben werden kann.
 	 * Wird im Verzeichnis/dem Verzeichnis der gewaehlten Dateien eine neue Datei mit diesem Namen erstellen.
 	 */
 	private void newCategory() {
 		String name = JOptionPane.showInputDialog("Gib den Namen der neuen Kategorie ein:");
 		File datei;
 		if(name != null && name != "") {
-			textArea_Frage.setText("(Frage)");
+			textArea_Frage.setText("");
 			textArea_A.setText("");
 			textArea_B.setText("");
 			textArea_C.setText("");
@@ -182,7 +181,7 @@ public class EditorGUI extends JFrame {
 			cbRAntwort.setSelectedItem(kategorie.get(list.getSelectedValue())[4]);
 		}
 		catch(NullPointerException e) {
-			
+			//Entsteht nur, wenn der Nutzer ins Feld klickt, wo kein Element ist -> muss nichts unternehmen
 		}
 		
 	}
@@ -236,7 +235,7 @@ public class EditorGUI extends JFrame {
 	
 	/**
 	 * Probiert, die gewaehlte Datei in die Datenbank einzulesen.
-	 * Falls erfolgreich, wird die Anzeige der Fragen mit den neuen Frage erneuert
+	 * Falls erfolgreich, wird die Anzeige der Fragen mit den neuen Frage aktualisiert
 	 */
 	private void selectFile() {
 		File temp = dateien.elementAt(cbFiles.getSelectedIndex());
@@ -252,7 +251,12 @@ public class EditorGUI extends JFrame {
 		    else {
 		    	readFile(actFile);
 		    }
-		    i = false;
+		    textArea_Frage.setText("");
+			textArea_A.setText("");
+			textArea_B.setText("");
+			textArea_C.setText("");
+			textArea_D.setText("");
+			cbRAntwort.setSelectedIndex(0);
 	}
 	
 	/**
@@ -260,9 +264,9 @@ public class EditorGUI extends JFrame {
 	 * Erstellt alle Buttons, Textfelder, Label, das Frame und die Liste zur Anzeige der Fragen aus der Datenbank
 	 */
 	private void initGUI() {
-		setTitle("Editor");
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 986, 551);	
+		this.setTitle("Editor");
+		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.setBounds(100, 100, 986, 551);	
 		this.setLayout(null);
 		
 		lblFragen = new JLabel("Fragen:");
@@ -319,7 +323,7 @@ public class EditorGUI extends JFrame {
 		
 		textArea_Frage = new JTextArea();
 		textArea_Frage.setBounds(558, 10, 392, 56);
-		textArea_Frage.setText("(Frage)");
+		textArea_Frage.setText("Frage");
 		textArea_Frage.setLineWrap(true);
 		this.add(textArea_Frage);
 		

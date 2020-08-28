@@ -14,7 +14,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,11 +49,12 @@ public class MultiplayerGUI extends JFrame {
 	private Map<Integer, ArrayList<Integer>> history = new HashMap<>(); //speichert die Information, welche Fragen aus welche Kategorie schon dran waren.
 	private JComboBox<String> jcbPopup; 
 	private String[] keys;
-	private int actKat;
+	private int actKat, runde = 1, frage = 1;
 	private String actFrage ="";
 	private Spieler spieler1, spieler2;
 	private Semaphore bereit = new Semaphore(1, true);
 	private Random random = new Random();
+	private JFrame frame = this;
 	
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files) fuer die Kategorien
@@ -185,7 +185,8 @@ public class MultiplayerGUI extends JFrame {
 					//3 Runden
 					for(int a = 0; a < 3; a++) {
 						selectCat(1); //Kategorie waehlen
-						
+						keys = kategorie.keySet().toArray(new String[kategorie.size()]); 
+						updateTitle();
 						//erste Frage
 						refreshQ();
 						lblStatus.setText("");
@@ -196,6 +197,7 @@ public class MultiplayerGUI extends JFrame {
 						for(int i = 0; i<2; i++) {
 							lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 							askQ();
+							updateTitle();
 							bereit.acquire();
 						}
 						lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
@@ -204,16 +206,19 @@ public class MultiplayerGUI extends JFrame {
 						
 						//1 Frage der neuen Kategorie
 						askQ();
+						updateTitle();
 						bereit.acquire();
 						//naechste 2 Fragen
 						for(int i = 0; i<2; i++) {
 							lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 							askQ();
+							updateTitle();
 							bereit.acquire();
 						}
 						lblStatus.setText("Die Richtige Antwort ist " + kategorie.get(actFrage)[4] + "!");
 						TimeUnit.SECONDS.sleep(2);
-						
+						runde++;
+						frage = 1;
 					}
 					
 					int z = 1;
@@ -274,30 +279,32 @@ public class MultiplayerGUI extends JFrame {
 	 */
 	private void selectCat(int i) throws StopGameException {
 		jcbPopup.setSelectedIndex(0);
-		int approve = 0;
-		while(approve == 0) {
+		Boolean approve = false;
+		while(!approve) {
 			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Spieler " + i + ": Bitte waehle eine Kategorie (\"Nein\" beendet das Spiel)", JOptionPane.OK_OPTION) == JOptionPane.OK_OPTION) {
 				actKat = jcbPopup.getSelectedIndex();
 				actFile = dateien.elementAt(actKat);
 				kategorie.clear();
 				readFile(actFile);
-				if(kategorie.keySet().size()>0) {
+				if(kategorie.keySet().size()>2) {
+					if(history.keySet().size()>=dateien.size()) {
+						history.clear();
+					}
 					if(!history.containsKey(actKat)) {
 						history.put(actKat, new ArrayList<Integer>());
 					}
-					keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
-					approve = 1;
+					lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
+					keys = kategorie.keySet().toArray(new String[kategorie.size()]);
+					approve = true;
 				}
 				else {
-					JOptionPane.showMessageDialog(getParent(), "Die gewaehlte Kategorie war leer. Waehle erneut.");
+					JOptionPane.showMessageDialog(getParent(), "Die gewaehlte Kategorie ist leer oder beinhaltet zu wenige Fragen. Waehle erneut.");
 				}
-				
 			}
 			else {
 				throw new StopGameException("Keine Kategorie gewaehlt!");
 			}
 		}
-		lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 	}
 	
 	/**
@@ -347,7 +354,7 @@ public class MultiplayerGUI extends JFrame {
 	 * JLabel lblStatus1
 	 */
 	private void initPanel1() {
-		//panel1 = new JPanel();
+		panel1 = new JPanel();
 		gbc_panel1 = new GridBagConstraints();
 		gbc_panel1.insets = new Insets(0, 0, 0, 5);
 		gbc_panel1.fill = GridBagConstraints.BOTH;
@@ -412,10 +419,6 @@ public class MultiplayerGUI extends JFrame {
 		splitPaneB1.setEnabled(false);
 		splitPaneC1.setEnabled(false);
 		splitPaneD1.setEnabled(false);
-		
-		
-//		SpielerPanel sp1 = new SpielerPanel();
-//		contentPane.add(sp1.getPanel(), gbc_panel1);
 	}
 	
 	/**
@@ -597,5 +600,13 @@ public class MultiplayerGUI extends JFrame {
 		bg2.add(rdbtnB2);
 		bg2.add(rdbtnC2);
 		bg2.add(rdbtnD2);
+	}
+	
+	/**
+	 * Updated den titel, sodass die aktuelle Runde und Fragennummer angezeigt wird
+	 */
+	private void updateTitle() {
+		frame.setTitle("Runde: " + runde + " | Frage: " + frage); 
+		frage++; 
 	}
 }
