@@ -1,16 +1,7 @@
 package aop_pruefung;
 
-import java.awt.Container;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.EventObject;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -19,8 +10,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JSplitPane;
 
 public class SpielerPanel extends JPanel{
-	private Spiel spiel;
-	private Semaphore bereit;
 	private JPanel panel = new JPanel();
 	private JLabel lblA, lblB, lblC, lblD, lblStatus, lblFrage;
 	private JRadioButton rdbtnA, rdbtnB, rdbtnC, rdbtnD;
@@ -30,8 +19,7 @@ public class SpielerPanel extends JPanel{
 	private ButtonGroup bg;
 	private Consumer<Integer> cons;
 	
-	public SpielerPanel(Spiel spiel, Consumer<Integer> consumer) {
-		this.spiel = spiel;
+	public SpielerPanel(Consumer<Integer> consumer) {
 		this.cons = consumer;
 		spieler = new Spieler();
 		panel.setLayout(new GridLayout(7, 1, 0, 0));
@@ -98,11 +86,32 @@ public class SpielerPanel extends JPanel{
 		bg.add(rdbtnD);
 	}
 	
-	public void setAntworten(String a, String b, String c, String d) {
+	public void setLblAntworten(String a, String b, String c, String d) {
 		rdbtnA.setText(a);
 		rdbtnB.setText(b);
 		rdbtnC.setText(c);
 		rdbtnD.setText(d);
+	}
+	
+	public void setAntwort(String a) {
+		switch(a) {
+		case "A":
+			rdbtnA.setSelected(true);
+			spieler.setAuswahl("A");
+			break;
+		case "B":
+			rdbtnB.setSelected(true);
+			spieler.setAuswahl("B");
+			break;
+		case "C":
+			rdbtnC.setSelected(true);
+			spieler.setAuswahl("C");
+			break;
+		case "D":
+			rdbtnD.setSelected(true);
+			spieler.setAuswahl("D");
+			break;
+		}
 	}
 	
 	/**

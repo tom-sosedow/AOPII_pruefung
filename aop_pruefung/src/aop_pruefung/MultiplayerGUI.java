@@ -35,8 +35,8 @@ public class MultiplayerGUI extends JFrame {
 	private JLabel lblCat, lblStatus, lblPunktestand, lblScore;
 	private GridBagLayout gbl_contentPane;
 	private GridBagConstraints gbc_panel1, gbc_panel2, gbc_panel3;
-	private JComboBox<File> jcbPopup; 
-	private Semaphore bereit = new Semaphore(1, true);
+	private JComboBox<String> jcbPopup; 
+	private Semaphore ready = new Semaphore(1, true);
 	private SpielerPanel sp1, sp2;
 	private Spiel spiel;
 	private int spieleranzahl = 2, runde = 1, frage = 1;
@@ -51,10 +51,14 @@ public class MultiplayerGUI extends JFrame {
 	public MultiplayerGUI(Vector<File> files) {
 		initGUI();
 		spiel = new Spiel(files);
-		jcbPopup = new JComboBox<File>(files);
+		String[] array = new String[files.size()];
+		for(int i = 0; i< files.size(); i++) {
+			array[i] = files.elementAt(i).getName().replace(".txt", "");		
+		}
+		jcbPopup = new JComboBox<String>(array);
 		
 		try {
-			bereit.acquire();
+			ready.acquire();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -83,14 +87,14 @@ public class MultiplayerGUI extends JFrame {
 						sp2.changeRdbtnState(true);
 						sp1.getBtnAccept().setEnabled(true);
 						sp2.getBtnAccept().setEnabled(true);
-						bereit.acquire();
+						ready.acquire();
 						
 						//2 Fragen 
 						for(int i = 0; i<2; i++) {
 							lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
 							askQ();
 							updateTitle();
-							bereit.acquire();
+							ready.acquire();
 						}
 						lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
 						
@@ -100,13 +104,13 @@ public class MultiplayerGUI extends JFrame {
 						//1 Frage der neuen Kategorie
 						askQ();
 						updateTitle();
-						bereit.acquire();
+						ready.acquire();
 						//naechste 2 Fragen
 						for(int i = 0; i<2; i++) {
 							lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
 							askQ();
 							updateTitle();
-							bereit.acquire();
+							ready.acquire();
 						}
 						lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
 						TimeUnit.SECONDS.sleep(2);
@@ -175,10 +179,10 @@ public class MultiplayerGUI extends JFrame {
 		
 		////possible foreach:
 		sp1.setLblFrage("<html><p>" + spiel.getActFrage() + "</p></html>");
-		sp1.setAntworten(spiel.getAntwort(z, 0), spiel.getAntwort(z, 1), spiel.getAntwort(z, 2), spiel.getAntwort(z, 3));
+		sp1.setLblAntworten(spiel.getAntwort(z, 0), spiel.getAntwort(z, 1), spiel.getAntwort(z, 2), spiel.getAntwort(z, 3));
 
 		sp2.setLblFrage("<html><p>" + spiel.getActFrage() + "</p></html>");
-		sp2.setAntworten(spiel.getAntwort(z, 0), spiel.getAntwort(z, 1), spiel.getAntwort(z, 2), spiel.getAntwort(z, 3));
+		sp2.setLblAntworten(spiel.getAntwort(z, 0), spiel.getAntwort(z, 1), spiel.getAntwort(z, 2), spiel.getAntwort(z, 3));
 		////
 	}
 	
@@ -300,7 +304,7 @@ public class MultiplayerGUI extends JFrame {
 					sp2.getSpieler().setBereit(false);
 					sp1.getSpieler().setAuswahl("");
 					sp2.getSpieler().setAuswahl("");
-					bereit.release();
+					ready.release();
 				}
 			}
 		};
@@ -310,7 +314,7 @@ public class MultiplayerGUI extends JFrame {
 		gbc_panel1.gridx = 0;
 		gbc_panel1.gridy = 0;
 		gbc_panel1.weightx = 0.5;
-		sp1 = new SpielerPanel(spiel, cons);
+		sp1 = new SpielerPanel(cons);
 		contentPane.add(sp1.getPanel(), gbc_panel1);
 		
 		
@@ -321,7 +325,7 @@ public class MultiplayerGUI extends JFrame {
 		gbc_panel3.gridx = 2;
 		gbc_panel3.gridy = 0;
 		gbc_panel3.weightx = 0.5;
-		sp2 = new SpielerPanel(spiel,  cons);
+		sp2 = new SpielerPanel(cons);
 		contentPane.add(sp2.getPanel(), gbc_panel3);
 	}
 }

@@ -22,6 +22,7 @@ public class Spiel {
 	private Vector<File> dateien = new Vector<File>();
 	private String[] keys;
 	private JComboBox<File> jcbPopup;
+	private Random random = new Random();
 	
 	public Spiel(Vector<File> dateien) {
 		this.dateien = dateien;
@@ -105,6 +106,40 @@ public class Spiel {
 		}
 		return cat;
 	}
+	
+	/**
+	 * Der Bot waehlt eine Kategorie, die vorher noch nicht dran war. Falls schon alle verfuegbaren dran waren, wird das Merkblatt geloescht
+	 * und die naechste Kategorie zum neuen merkblatt hinzugefuegt
+	 */
+	public String auswahlBotCat() {
+		Boolean approve = false;
+		String cat = "";
+		while(!approve) {
+			do {
+				actCat = random.nextInt(dateien.size());
+				actFile = dateien.elementAt(actCat);
+			} while(history.containsKey(actCat) && history.keySet().size()<dateien.size());
+			kategorie.clear();
+			readFile(actFile);
+			if(kategorie.keySet().size()>2) {
+				if(history.keySet().size()>=dateien.size()) {
+					history.clear();
+				}
+				if(!history.containsKey(actCat)) {
+					history.put(actCat, new ArrayList<Integer>());
+				}
+				cat = actFile.getName().replace(".txt", "");
+				keys = kategorie.keySet().toArray(new String[kategorie.size()]);
+				approve = true;
+			}
+			else {
+				history.put(actCat, new ArrayList<Integer>()); //verhindern einer Endlosschleife
+			}
+		}
+		return cat;
+	}
+	
+	
 	
 	//Getter und Setter
 	public String[] getArr() {
