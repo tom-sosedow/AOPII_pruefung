@@ -1,7 +1,7 @@
 package aop_pruefung;
 
 /**
- * Verwaltet die Informationen ueber die Spieler: Punkte, Auswahl, Nummer und ob se bereit sind.
+ * Verwaltet die Informationen ueber die Spieler: Punkte, Auswahl, Nummer und ob sie bereit sind.
  * @author Tom Sosedow
  *
  */
@@ -13,7 +13,7 @@ public class Spieler {
 	private Boolean bereit = false;
 	
 	/**
-	 * Legt einen weiteren Spieler mit fortlaufender Nummer (beginnend bei 1) an und setzt Punkte auf 0
+	 * Legt einen weiteren Spieler mit fortlaufender Nummer (beginnend bei 1) und Startpunktzahl 0 an.
 	 */
 	public Spieler() {
 		anzahl++;

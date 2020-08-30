@@ -1,9 +1,6 @@
 package aop_pruefung;
 
-import java.awt.BorderLayout;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -12,7 +9,6 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -36,7 +32,7 @@ import java.awt.event.MouseEvent;
 
 public class EditorGUI extends JFrame {
 
-	private Map<String, String[]> kategorie = new HashMap<>();
+	private Map<String, String[]> kategorie = new HashMap<>(); //Beinhaltet zu jeder Frage die dazugehoerigen Antworten und die richtige Antwort
 	private File actFile;
 	private JLabel lblFragen, lblrAntwort, lblA, lblB, lblC, lblD;
 	private JButton btnSave, btnAddQ, btnAccept, btnDelete, btnNewCategory;
@@ -52,7 +48,7 @@ public class EditorGUI extends JFrame {
 	
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files)
-	 * @param files Vektor mit den File-Daten
+	 * @param files Vektor mit den File-Daten (Kategorien)
 	 */
 	public EditorGUI(Vector<File> dateien) {
 		this.dateien = dateien;
@@ -235,7 +231,7 @@ public class EditorGUI extends JFrame {
 	
 	/**
 	 * Probiert, die gewaehlte Datei in die Datenbank einzulesen.
-	 * Falls erfolgreich, wird die Anzeige der Fragen mit den neuen Frage aktualisiert
+	 * Falls erfolgreich, wird die Anzeige der Fragen mit den neuen Fragen aktualisiert
 	 */
 	private void selectFile() {
 		File temp = dateien.elementAt(cbFiles.getSelectedIndex());
@@ -267,65 +263,65 @@ public class EditorGUI extends JFrame {
 		this.setTitle("Editor");
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setBounds(100, 100, 986, 551);	
-		this.setLayout(null);
+		getContentPane().setLayout(null);
 		
 		lblFragen = new JLabel("Fragen:");
-		lblFragen.setBounds(27, 50, 46, 14);
-		this.add(lblFragen);
+		lblFragen.setBounds(27, 50, 121, 14);
+		getContentPane().add(lblFragen);
 		
 		textArea_A = new JTextArea();
 		textArea_A.setText("Antwort 1");
 		textArea_A.setBounds(599, 75, 351, 65);
 		textArea_A.setLineWrap(true);
-		this.add(textArea_A);
+		getContentPane().add(textArea_A);
 		
 		textArea_B = new JTextArea();
 		textArea_B.setText("Antwort 2");
 		textArea_B.setBounds(599, 151, 351, 65);
 		textArea_B.setLineWrap(true);
-		this.add(textArea_B);
+		getContentPane().add(textArea_B);
 		
 		textArea_C = new JTextArea();
 		textArea_C.setText("Antwort 3");
 		textArea_C.setBounds(599, 227, 351, 65);
 		textArea_C.setLineWrap(true);
-		this.add(textArea_C);
+		getContentPane().add(textArea_C);
 		
 		textArea_D = new JTextArea();
 		textArea_D.setText("Antwort 4");
 		textArea_D.setBounds(599, 303, 351, 65);
 		textArea_D.setLineWrap(true);
-		this.add(textArea_D);
+		getContentPane().add(textArea_D);
 		
 		cbRAntwort = new JComboBox<String>(ABCD);
 		cbRAntwort.setBounds(599, 400, 121, 22);
-		this.add(cbRAntwort);
+		getContentPane().add(cbRAntwort);
 		
 		lblrAntwort = new JLabel("Richtige Antwort:");
-		lblrAntwort.setBounds(599, 379, 121, 14);
-		this.add(lblrAntwort);
+		lblrAntwort.setBounds(599, 379, 182, 14);
+		getContentPane().add(lblrAntwort);
 		
 		lblA = new JLabel("A:");
 		lblA.setBounds(558, 80, 31, 14);
-		this.add(lblA);
+		getContentPane().add(lblA);
 		
 		lblB = new JLabel("B:");
 		lblB.setBounds(558, 156, 31, 14);
-		this.add(lblB);
+		getContentPane().add(lblB);
 		
 		lblC = new JLabel("C:");
 		lblC.setBounds(558, 232, 31, 14);
-		this.add(lblC);
+		getContentPane().add(lblC);
 		
 		lblD = new JLabel("D:");
 		lblD.setBounds(558, 308, 31, 14);
-		this.add(lblD);
+		getContentPane().add(lblD);
 		
 		textArea_Frage = new JTextArea();
 		textArea_Frage.setBounds(558, 10, 392, 56);
 		textArea_Frage.setText("Frage");
 		textArea_Frage.setLineWrap(true);
-		this.add(textArea_Frage);
+		getContentPane().add(textArea_Frage);
 		
 		list.addMouseListener(new MouseAdapter() {
 			@Override
@@ -336,39 +332,39 @@ public class EditorGUI extends JFrame {
 		
 		scrollPane = new JScrollPane();
 		scrollPane.setBounds(27, 75, 500, 348);
-		this.add(scrollPane);
+		getContentPane().add(scrollPane);
 		scrollPane.setViewportView(list);
 		
 		btnSave = new JButton("Datei speichern");
 		btnSave.addActionListener(e -> saveFile());
-		btnSave.setBounds(390, 11, 137, 23);
-		this.add(btnSave);
+		btnSave.setBounds(359, 11, 168, 23);
+		getContentPane().add(btnSave);
 		
 		btnAddQ = new JButton("Frage hinzufuegen");
 		btnAddQ.addActionListener(e -> addQ());
 		btnAddQ.setBounds(27, 448, 168, 23);
-		this.add(btnAddQ);
+		getContentPane().add(btnAddQ);
 
 		btnAccept = new JButton("Bestaetigen");
 		btnAccept.setBounds(739, 400, 121, 23);
 		btnAccept.addActionListener(e -> modifyQ());
-		this.add(btnAccept);
+		getContentPane().add(btnAccept);
 		
 		btnDelete = new JButton("Frage loeschen");
 		btnDelete.addActionListener(e -> deleteQ());
 		btnDelete.setBounds(359, 448, 168, 23);
-		this.add(btnDelete);
+		getContentPane().add(btnDelete);
 				
 		cbFiles = new JComboBox<File>(dateien);
 		cbFiles.addActionListener(e -> selectFile());
-		cbFiles.setBounds(27, 11, 353, 22);
+		cbFiles.setBounds(27, 11, 322, 22);
 		cbFiles.setSelectedIndex(0);
 		selectFile();
-		this.add(cbFiles);
+		getContentPane().add(cbFiles);
 		
 		btnNewCategory = new JButton("Neue Kategorie");
 		btnNewCategory.addActionListener(e -> newCategory());
-		btnNewCategory.setBounds(390, 46, 137, 23);
-		this.add(btnNewCategory);
+		btnNewCategory.setBounds(359, 46, 168, 23);
+		getContentPane().add(btnNewCategory);
 	}
 }

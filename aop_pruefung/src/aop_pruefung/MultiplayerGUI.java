@@ -44,7 +44,7 @@ public class MultiplayerGUI extends JFrame {
 	private GridBagConstraints gbc_panel1, gbc_panel2, gbc_panel3;
 	private ButtonGroup bg1, bg2;
 	private File actFile;
-	private Map<String, String[]> kategorie = new HashMap<>();
+	private Map<String, String[]> kategorie = new HashMap<>(); //Beinhaltet zu jeder Frage die dazugehoerigen Antworten und die richtige Antwort
 	private Vector<File> dateien = new Vector<File>();
 	private Map<Integer, ArrayList<Integer>> history = new HashMap<>(); //speichert die Information, welche Fragen aus welche Kategorie schon dran waren.
 	private JComboBox<String> jcbPopup; 
@@ -58,7 +58,7 @@ public class MultiplayerGUI extends JFrame {
 	
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files) fuer die Kategorien
-	 * @param files Vektor mit den File-Daten
+	 * @param files Vektor mit den File-Daten (Kategorien)
 	 * 
 	 */
 	public MultiplayerGUI(Vector<File> files) {
@@ -603,7 +603,7 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Updated den titel, sodass die aktuelle Runde und Fragennummer angezeigt wird
+	 * Aktualisiert den Titel, sodass die aktuelle Runde und Fragennummer angezeigt wird
 	 */
 	private void updateTitle() {
 		frame.setTitle("Runde: " + runde + " | Frage: " + frage); 
