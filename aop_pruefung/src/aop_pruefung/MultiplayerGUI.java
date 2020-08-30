@@ -13,6 +13,8 @@ import javax.swing.ButtonGroup;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
@@ -184,6 +186,9 @@ public class MultiplayerGUI extends JFrame {
 						sp1.getBg().clearSelection();
 						bg2.clearSelection();
 						bereit.acquire();
+						accept(1);
+						bereit.acquire();
+						accept(2);
 						//2 Fragen 
 						for(int i = 0; i<2; i++) {
 							lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
@@ -266,30 +271,32 @@ public class MultiplayerGUI extends JFrame {
 	 */
 	private void selectCat(int i) throws StopGameException {
 		jcbPopup.setSelectedIndex(0);
-		int approve = 0;
-		while(approve == 0) {
+		Boolean approve = false;
+		while(!approve) {
 			if(JOptionPane.showConfirmDialog( getParent(), jcbPopup, "Spieler " + i + ": Bitte waehle eine Kategorie (\"Nein\" beendet das Spiel)", JOptionPane.OK_OPTION) == JOptionPane.OK_OPTION) {
 				spiel.setActKat(jcbPopup.getSelectedIndex());
 				spiel.setActFile(dateien.elementAt(spiel.getActKat()));
-				spiel.clearKat();
+				spiel.getKategorie().clear();
 				spiel.readFile(spiel.getActFile());
-				if(kategorie.keySet().size()>0) {
-					if(!history.containsKey(actKat)) {
-						history.put(actKat, new ArrayList<Integer>());
+				if(spiel.getKategorie().keySet().size()>2) {
+					if(spiel.getHistory().keySet().size()>=dateien.size()) {
+						spiel.getHistory().clear();
 					}
-					keys = kategorie.keySet().toArray(new String[kategorie.size()]); //Fragenliste
-					approve = 1;
+					if(!spiel.getHistory().containsKey(spiel.getActKat())) {
+						spiel.getHistory().put(spiel.getActKat(), new ArrayList<Integer>());
+					}
+					lblCat.setText("Kategorie: " + spiel.getActFile().getName().replace(".txt", ""));
+					spiel.setKeys(spiel.getKategorie().keySet().toArray(new String[spiel.getKategorie().size()]));
+					approve = true;
 				}
 				else {
-					JOptionPane.showMessageDialog(getParent(), "Die gewaehlte Kategorie war leer. Waehle erneut.");
+					JOptionPane.showMessageDialog(getParent(), "Die gewaehlte Kategorie ist leer oder beinhaltet zu wenige Fragen. Waehle erneut.");
 				}
-				
 			}
 			else {
 				throw new StopGameException("Keine Kategorie gewaehlt!");
 			}
 		}
-		lblCat.setText("Kategorie: " + actFile.getName().replace(".txt", ""));
 	}
 	
 	/**
@@ -298,33 +305,33 @@ public class MultiplayerGUI extends JFrame {
 	 */
 	private void refreshQ() throws NullPointerException{
 		int z;
-		if(history.get(actKat).size()<kategorie.keySet().size()) { // wenn noch ungenutzte Fragen uebrig
+		if(spiel.getHistory().get(spiel.getActKat()).size()<spiel.getKategorie().keySet().size()) { // wenn noch ungenutzte Fragen uebrig
 			do{
-				z = random.nextInt(keys.length);
-			}while(history.get(actKat).contains(z));
+				z = random.nextInt(spiel.getKeys().length);
+			}while(spiel.getHistory().get(spiel.getActKat()).contains(z));
 		}
 		else {
-			int temp = history.get(actKat).get(history.get(actKat).size()-1); //merke den Index der zuletzt gestellten Frage
-			history.put(actKat, new ArrayList<Integer>());
-			history.get(actKat).add(temp); 
+			int temp = spiel.getHistory().get(spiel.getActKat()).get(spiel.getHistory().get(spiel.getActKat()).size()-1); //merke den Index der zuletzt gestellten Frage
+			spiel.getHistory().put(spiel.getActKat(), new ArrayList<Integer>());
+			spiel.getHistory().get(spiel.getActKat()).add(temp); 
 			do{
-				z = random.nextInt(keys.length);
+				z = random.nextInt(spiel.getKeys().length);
 			}while(z == temp);
 		}
 		
-		history.get(actKat).add(z);
-		actFrage = keys[z];
-		sp1.getLblFrage().setText("<html><p>" + actFrage + "</p></html>");
-		rdbtnA1.setText(kategorie.get(keys[z])[0]);
-		rdbtnB1.setText(kategorie.get(keys[z])[1]);
-		rdbtnC1.setText(kategorie.get(keys[z])[2]);
-		rdbtnD1.setText(kategorie.get(keys[z])[3]);
+		spiel.getHistory().get(spiel.getActKat()).add(z);
+		spiel.setActFrage(spiel.getKeys()[z]);
+		sp1.getLblFrage().setText("<html><p>" + spiel.getActFrage() + "</p></html>");
+		rdbtnA1.setText(spiel.getKategorie().get(spiel.getKeys()[z])[0]);
+		rdbtnB1.setText(spiel.getKategorie().get(spiel.getKeys()[z])[1]);
+		rdbtnC1.setText(spiel.getKategorie().get(spiel.getKeys()[z])[2]);
+		rdbtnD1.setText(spiel.getKategorie().get(spiel.getKeys()[z])[3]);
 
-		lblFrage2.setText("<html><p>" + actFrage + "</p></html>");
-		rdbtnA2.setText(kategorie.get(keys[z])[0]);
-		rdbtnB2.setText(kategorie.get(keys[z])[1]);
-		rdbtnC2.setText(kategorie.get(keys[z])[2]);
-		rdbtnD2.setText(kategorie.get(keys[z])[3]);
+		lblFrage2.setText("<html><p>" + spiel.getActFrage() + "</p></html>");
+		rdbtnA2.setText(spiel.getKategorie().get(spiel.getKeys()[z])[0]);
+		rdbtnB2.setText(spiel.getKategorie().get(spiel.getKeys()[z])[1]);
+		rdbtnC2.setText(spiel.getKategorie().get(spiel.getKeys()[z])[2]);
+		rdbtnD2.setText(spiel.getKategorie().get(spiel.getKeys()[z])[3]);
 		
 	}
 	
@@ -537,7 +544,7 @@ public class MultiplayerGUI extends JFrame {
 		contentPane.setLayout(gbl_contentPane);
 		
 		//initPanel1();
-		sp1 = new SpielerPanel(spiel);
+		sp1 = new SpielerPanel(spiel, bereit);
 		contentPane.add(sp1.getPanel(), gbc_panel1);
 		initPanel2();
 		initPanel3();

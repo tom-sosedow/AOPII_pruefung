@@ -4,6 +4,8 @@ import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.EventObject;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -15,18 +17,21 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSplitPane;
 
-public class SpielerPanel extends JPanel{
-	private Spiel spiel = new Spiel();
-	private Semaphore bereit = new Semaphore(1, true);
+public class SpielerPanel extends JPanel implements ActionListener{
+	private Spiel spiel;
+	private Semaphore bereit;
 	private JPanel panel = new JPanel();
 	private JLabel lblA, lblB, lblC, lblD, lblStatus, lblFrage;
 	private JRadioButton rdbtnA, rdbtnB, rdbtnC, rdbtnD;
 	private JSplitPane splitPaneA, splitPaneB, splitPaneC, splitPaneD;
 	private JButton btnAccept;
+	private Spieler spieler;
 	private ButtonGroup bg;
 	
-	public SpielerPanel(Spiel spiel) {
+	public SpielerPanel(Spiel spiel, Semaphore bereit) {
 		this.spiel = spiel;
+		this.bereit = bereit;
+		spieler = new Spieler();
 		panel.setLayout(new GridLayout(7, 1, 0, 0));
 		
 		lblFrage = new JLabel("Frage:");
@@ -99,42 +104,6 @@ public class SpielerPanel extends JPanel{
 		bereit.release();
 	}
 	
-	public void getAuswertung() throws InterruptedException {
-		bereit.acquire();
-		if(spieler.getAuswahl().equals("")) {
-			lblStatus.setText("Bitte waehle zuerst eine Antwort!");
-			return;
-		}
-		if(spieler.getAuswahl().equals(kategorie.get(actFrage)[4])) {
-			spieler.setPunkte(spieler.getPunkte()+);
-			lblScore.setText(spieler.getPunkte() + ":" + spieler.getPunkte());
-			lblStatus.setText("<HTML><BODY BGCOLOR=#4EFF0>Richtig!</BODY></HTML>");
-			executor.schedule(() -> {
-				lblStatus.setText("");
-		    }, 3, TimeUnit.SECONDS);
-		}
-		else {
-			lblStatus.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
-			executor.schedule(() -> {
-				lblStatus.setText("");
-		    }, 3, TimeUnit.SECONDS);
-		}
-		if(spieler.getAuswahl().equals(kategorie.get(actFrage)[4])) {
-			spieler.setPunkte(spieler.getPunkte()+);
-			lblScore.setText(spieler.getPunkte() + ":" + spieler.getPunkte());
-			lblStatus.setText("<HTML><BODY BGCOLOR=#4EFF0>Richtig!</BODY></HTML>");
-			executor.schedule(() -> {
-				lblStatus.setText("");
-		    }, 3, TimeUnit.SECONDS);
-		}
-		else {
-			lblStatus.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
-			executor.schedule(() -> {
-				lblStatus.setText("");
-		    }, 3, TimeUnit.SECONDS);
-		}
-		spieler.setAuswahl("");
-	}
 	public JPanel getPanel() {
 		return panel;
 	}
@@ -238,4 +207,10 @@ public class SpielerPanel extends JPanel{
 		spieler.setAuswahl("");
 		bereit.release();
 	 */
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
 }

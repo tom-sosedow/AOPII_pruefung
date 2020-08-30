@@ -94,7 +94,7 @@ public class Spiel {
 	public void setHistory(Map<Integer, ArrayList<Integer>> history) {
 		this.history = history;
 	}
-
+	
 	public String getActFrage() {
 		return actFrage;
 	}
@@ -113,5 +113,21 @@ public class Spiel {
 
 	public File getActFile() {
 		return actFile;
+	}
+
+	public Map<String, String[]> getKategorie() {
+		return kategorie;
+	}
+
+	public void setKategorie(Map<String, String[]> kategorie) {
+		this.kategorie = kategorie;
+	}
+
+	public String[] getKeys() {
+		return keys;
+	}
+
+	public void setKeys(String[] keys) {
+		this.keys = keys;
 	}
 }
