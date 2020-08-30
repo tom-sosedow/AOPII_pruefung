@@ -104,7 +104,7 @@ public class MainGUI extends JFrame {
 			multiplayer.spielen();
 		}
 		else {
-			lblPfad.setText("<- Bitte erst die Kategorien auswaehlen!");
+			lblPfad.setText("<- Bitte erst (nicht leere) Kategorien/Ordner auswaehlen!");
 			lblFiles.setText("<-");
 		}	
 	}
@@ -120,7 +120,7 @@ public class MainGUI extends JFrame {
 			singleplayer.spielen();
 		}
 		else {
-			lblPfad.setText("<- Bitte erst die Kategorien auswaehlen!");
+			lblPfad.setText("<- Bitte erst (nicht leere) Kategorien/Ordner auswaehlen!");
 			lblFiles.setText("<-");	
 		}
 	}
@@ -135,7 +135,7 @@ public class MainGUI extends JFrame {
 			editor.setVisible(true);
 		}
 		else {
-			lblPfad.setText("<- Bitte erst die Kategorien auswaehlen!");
+			lblPfad.setText("<- Bitte erst (nicht leere) Kategorien/Ordner auswaehlen!");
 			lblFiles.setText("<-");
 		}
 	}
@@ -184,6 +184,9 @@ public class MainGUI extends JFrame {
 				for(int i = 0; i< ls.length; i++) 
 					dateien.add(ls[i]);
 	    }
+	    if(dateien.size()==0) {
+	    	dateien = null;
+	    }
 	}
 	
 	/**
@@ -192,21 +195,35 @@ public class MainGUI extends JFrame {
 	 */
 	private void instructions() {
 		String msg = "<html><h1>Anleitung</h1>\r\n" + 
-				"<ol>\r\n" + 
-				"    <li>Waehle zuerst deinen Datensatz aus. Falls du noch keinen hast, waehle einen Ordner in dem du einen erstellen moechtest.</li>" + 
-				"    <li>Im Editor kannst du deinen Kategorien neue Fragen hinzufuegen, Fragen loeschen oder veraendern und neue Kategorien erstellen.</li>" + 
-				"    <li>Willst du spielen, so waehle den gewuenschten Modus aus. Einzelspieler oder Mehrspieler (2 Spieler).<br>" + 
-					"Beim Einzelspieler musst du eine Schwierigkeit fuer deinen Gegner (COM) auswaehlen. Falls du nichts auswaehlst, wird die schwierigste Stufe gewaehlt. <br>" +
-					"Dein Gegner waehlt selbstaendig seine Kategorie und seine Antworten!</li>" + 
-				"</ol>" + 
-				"<h3>So wird gespielt</h3>" + 
-				"<ol>" + 
-				"    <li>Es werden 3 Runden gespielt</li>" + 
-				"    <li>In jeder Runde darf erst Spieler 1(links), danach Spieler 2(rechts) eine Kategorie waehlen.</li>" + 
-				"    <li>Pro Kategorie werden dann 3 Fragen gestellt, jede richtige Antwort gibt 1 Punkt!</li>" + 
-				"    <li>Wenn beide Spieler ihre Antwort abgegeben haben, wird die Loesung praesentiert und dann die naechste Frage gezeigt.</li>" + 
-				"</ol>" + 
-				"<p><span style=\"color: rgb(209, 72, 65);\">Viel Spass!</span></p></html>";
+				"<p>Zu Beginn musst du deine Kategoriedateien auswaehlen. Bei \"Ordner waehlen\" kannst du einen Ordner waehlen, in dem sich all deine Dateien befinden. Falls du nur bestimmte Kategorien/Dateien in die Datenbank aufnehmen willst, <br>kannst du bei \"Deteien waehlen\" einzelne aussuchen indem du die STRG-Taste gedrueckt haeltst und dann die gewuenschten Dateien auswaehlst.</p>"+
+				"<p>Das Programm bietet 3 dann verschiedene Modi:</p>\r\n" + 
+				"<ul>\r\n" + 
+				"    <li><strong>Editormodus</strong>\r\n" + 
+				"        <ul>\r\n" + 
+				"            <li>Hier kannst du deine Kategorien bearbeiten oder neue erstellen.</li>\r\n" + 
+				"            <li>Waehle eine Kategorie in dem Drop-Down Menue aus und waehle eine Frage aus, um sie anschliessend rechts bearbeiten zu koennen. Bist du fertig, druecke auf den Button \"Bestaetigen\".</li>\r\n" + 
+				"            <li>Um eine neue Frage hinzuzufuegen, druecke auf \"Frage hinzufuegen\". Das naechste Mal, wenn du auf \"Bestaetigen\" drueckst, wird die Frage in deine Kategorie aufgenommen.</li>\r\n" + 
+				"            <li>Moechtest du eine Frage entfernen, waehle sie einfach aus und druecke auf \"Frage Loeschen\".</li>\r\n" + 
+				"            <li>Vergiss nicht, am Ende deine Aenderungen an einer Kategorie/Datei zu speichern, in dem du auf \"Datei speichern\" drueckst.</li>\r\n" + 
+				"        </ul>\r\n" + 
+				"    </li>\r\n" + 
+				"    <li><strong>Spielen</strong>\r\n" + 
+				"        <ul>\r\n" + 
+				"            <li>Es werden 3 Runden gespielt. In jeder Runde darf erst der linke Spieler (1), danach der rechte Spieler (2) eine Kategorie waehlen. Pro Kategorie werden nacheinander 3 Fragen gestellt und jede richtige Antwort gibt 1 Punkt. Wer am Ende mehr Punkte hat, gewinnt!</li>\r\n" + 
+				"            <li><u>Singleplayer Modus</u>\r\n" + 
+				"                <ul>\r\n" + 
+				"                    <li>Hier spielst du gegen einen Bot. Am Anfang waehlst du aus, wie stark dieser sein soll. Aber pass auf! Falls du nichts auswaehlst, wird die schwierigste Stufe gewaehlt! Der Bot waehlt automatisch seine Fragen und Kategorien und ist immer bereit.</li>\r\n" + 
+				"                </ul>\r\n" + 
+				"            </li>\r\n" + 
+				"            <li><u>Multiplayer Modus</u>\r\n" + 
+				"                <ul>\r\n" + 
+				"                    <li>Hier trittst du gegen einen echten anderen Spieler an. Wenn ihr beide eure Antwort gewaehlt habt, wird die Loesung praesentiert und die naechste Frage nach kurzer Zeit eingeblendet.</li>\r\n" + 
+				"                </ul>\r\n" + 
+				"            </li>\r\n" + 
+				"        </ul>\r\n" + 
+				"    </li>\r\n" + 
+				"</ul>\r\n" + 
+				"<p><span style=\"color: rgb(184, 49, 47);\"><strong><u>Viel Spass!</u></strong></p></html>";
 		JLabel message = new JLabel(msg);
 		JOptionPane.showMessageDialog(getParent(), message);
 	}

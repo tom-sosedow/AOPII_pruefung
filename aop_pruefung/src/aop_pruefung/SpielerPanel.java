@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.util.EventObject;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -17,7 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSplitPane;
 
-public class SpielerPanel extends JPanel implements ActionListener{
+public class SpielerPanel extends JPanel{
 	private Spiel spiel;
 	private Semaphore bereit;
 	private JPanel panel = new JPanel();
@@ -27,10 +28,11 @@ public class SpielerPanel extends JPanel implements ActionListener{
 	private JButton btnAccept;
 	private Spieler spieler;
 	private ButtonGroup bg;
+	private Consumer<Integer> cons;
 	
-	public SpielerPanel(Spiel spiel, Semaphore bereit) {
+	public SpielerPanel(Spiel spiel, Consumer<Integer> consumer) {
 		this.spiel = spiel;
-		this.bereit = bereit;
+		this.cons = consumer;
 		spieler = new Spieler();
 		panel.setLayout(new GridLayout(7, 1, 0, 0));
 		
@@ -78,7 +80,7 @@ public class SpielerPanel extends JPanel implements ActionListener{
 		rdbtnD.addActionListener(e -> spieler.setAuswahl("D"));
 		
 		btnAccept = new JButton("Bestaetigen");
-		btnAccept.addActionListener(e-> accept());
+		btnAccept.addActionListener(e-> cons.accept(spieler.getNummer()));
 		panel.add(btnAccept);
 		
 		lblStatus = new JLabel("");
@@ -89,19 +91,29 @@ public class SpielerPanel extends JPanel implements ActionListener{
 		splitPaneC.setEnabled(false);
 		splitPaneD.setEnabled(false);
 		
+		bg = new ButtonGroup();
 		bg.add(rdbtnA);
 		bg.add(rdbtnB);
 		bg.add(rdbtnC);
 		bg.add(rdbtnD);
-		try {
-			bereit.acquire();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 	}
 	
-	private void accept(){
-		bereit.release();
+	public void setAntworten(String a, String b, String c, String d) {
+		rdbtnA.setText(a);
+		rdbtnB.setText(b);
+		rdbtnC.setText(c);
+		rdbtnD.setText(d);
+	}
+	
+	/**
+	 * Aktiviert(b=true) bzw. deaktiviert (b=false) die Moeglichkeit des Spielers, eine Auswahl in seiner Buttongroup zu taetigen
+	 * @param b gewuenschter Status der Buttons (Boolean)
+	 */
+	public void changeRdbtnState(Boolean b) {
+		rdbtnA.setEnabled(b);
+		rdbtnB.setEnabled(b);
+		rdbtnC.setEnabled(b);
+		rdbtnD.setEnabled(b);
 	}
 	
 	public JPanel getPanel() {
@@ -112,48 +124,48 @@ public class SpielerPanel extends JPanel implements ActionListener{
 		return lblA;
 	}
 
-	public void setLblA(JLabel lblA) {
-		this.lblA = lblA;
+	public void setLblA(String a) {
+		lblA.setText(a);
 	}
 
 	public JLabel getLblB() {
 		return lblB;
 	}
 
-	public void setLblB(JLabel lblB) {
-		this.lblB = lblB;
+	public void setLblB(String a) {
+		lblB.setText(a);
 	}
 
 	public JLabel getLblC() {
 		return lblC;
 	}
 
-	public void setLblC(JLabel lblC) {
-		this.lblC = lblC;
+	public void setLblC(String a) {
+		lblC.setText(a);
 	}
 
 	public JLabel getLblD() {
 		return lblD;
 	}
 
-	public void setLblD(JLabel lblD) {
-		this.lblD = lblD;
+	public void setLblD(String a) {
+		lblD.setText(a);
 	}
 
 	public JLabel getLblStatus() {
 		return lblStatus;
 	}
 
-	public void setLblStatus(JLabel lblStatus) {
-		this.lblStatus = lblStatus;
+	public void setLblStatus(String a) {
+		lblStatus.setText(a);
 	}
 
 	public JLabel getLblFrage() {
 		return lblFrage;
 	}
 
-	public void setLblFrage(JLabel lblFrage) {
-		this.lblFrage = lblFrage;
+	public void setLblFrage(String a) {
+		lblFrage.setText(a);
 	}
 
 	public JButton getBtnAccept() {
@@ -170,47 +182,5 @@ public class SpielerPanel extends JPanel implements ActionListener{
 	
 	public Spieler getSpieler() {
 		return spieler;
-	}
-	/*
-	  if(spieler.getAuswahl().equals("")) {
-			lblStatus.setText("Bitte waehle zuerst eine Antwort!");
-			return;
-		}
-		if(spieler.getAuswahl().equals(kategorie.get(actFrage)[4])) {
-			spieler.setPunkte(spieler.getPunkte()+);
-			lblScore.setText(spieler.getPunkte() + ":" + spieler.getPunkte());
-			lblStatus.setText("<HTML><BODY BGCOLOR=#4EFF0>Richtig!</BODY></HTML>");
-			executor.schedule(() -> {
-				lblStatus.setText("");
-		    }, 3, TimeUnit.SECONDS);
-		}
-		else {
-			lblStatus.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
-			executor.schedule(() -> {
-				lblStatus.setText("");
-		    }, 3, TimeUnit.SECONDS);
-		}
-		if(spieler.getAuswahl().equals(kategorie.get(actFrage)[4])) {
-			spieler.setPunkte(spieler.getPunkte()+);
-			lblScore.setText(spieler.getPunkte() + ":" + spieler.getPunkte());
-			lblStatus.setText("<HTML><BODY BGCOLOR=#4EFF0>Richtig!</BODY></HTML>");
-			executor.schedule(() -> {
-				lblStatus.setText("");
-		    }, 3, TimeUnit.SECONDS);
-		}
-		else {
-			lblStatus.setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
-			executor.schedule(() -> {
-				lblStatus.setText("");
-		    }, 3, TimeUnit.SECONDS);
-		}
-		spieler.setAuswahl("");
-		bereit.release();
-	 */
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 }
