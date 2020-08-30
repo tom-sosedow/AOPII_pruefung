@@ -39,8 +39,9 @@ public class MultiplayerGUI extends JFrame {
 	private Semaphore bereit = new Semaphore(1, true);
 	private SpielerPanel sp1, sp2;
 	private Spiel spiel;
-	private int spieleranzahl = 2;
+	private int spieleranzahl = 2, runde = 1, frage = 1;
 	private Consumer<Integer> cons;
+	private JFrame frame = this;
 	
 	/**
 	 * Initialisiert das Fenster und nutzt dabei den uebergebenen Vektor (Files) fuer die Kategorien
@@ -60,20 +61,6 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Aktiviert(b=true) bzw. deaktiviert (b=false) die Moeglichkeit des Sspielers i, eine Auswahl in seiner Buttongroup zu taetigen
-	 * @param i Spielernummer
-	 * @param b gewuenschter Status der Buttons (Boolean)
-	 */
-	private void changeRdbtnState(int i, Boolean b) {
-		if (i == 1) {
-			sp1.changeRdbtnState(b);
-		}
-		else {
-			sp2.changeRdbtnState(b);
-		}
-	}
-	
-	/**
 	 * Spielablauf wird hier durchgegangen entsprechend der Spielregeln. Startet dafuer einen neuen Thread damit mithilfe 
 	 * von Semaphores auf Spielereingaben gewartet werden kann.
 	 */
@@ -83,59 +70,66 @@ public class MultiplayerGUI extends JFrame {
 				try {
 					//3 Runden
 					for(int a = 0; a < 3; a++) {
-						for(int b = 1; b <= spieleranzahl/2; b = b+2) {
-							jcbPopup.setSelectedIndex(0);
-							lblCat.setText("Kategorie: " + spiel.selectCat(b)); //Kategorie waehlen
-							
-							//erste Frage
-							refreshQ();
-							lblStatus.setText("");
-							sp1.getBg().clearSelection();
-							sp2.getBg().clearSelection();
-							bereit.acquire();
-							
-							//2 Fragen 
-							for(int i = 0; i<2; i++) {
-								lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
-								askQ();
-								bereit.acquire();
-							}
-							lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
-							
-							jcbPopup.setSelectedIndex(0);
-							lblCat.setText("Kategorie: " + spiel.selectCat(b+1)); //Kategorie waehlen
-							
-							//1 Frage der neuen Kategorie
-							askQ();
-							bereit.acquire();
-							//naechste 2 Fragen
-							for(int i = 0; i<2; i++) {
-								lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
-								askQ();
-								bereit.acquire();
-							}
-							lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
-							TimeUnit.SECONDS.sleep(2);
-						}
+						jcbPopup.setSelectedIndex(0);
+						lblCat.setText("Kategorie: " + spiel.selectCat(1)); //Kategorie waehlen
+						updateTitle();
 						
+						//erste Frage
+						lblStatus.setText("");
+						refreshQ();
+						sp1.getBg().clearSelection();
+						sp2.getBg().clearSelection();
+						sp1.changeRdbtnState(true);
+						sp2.changeRdbtnState(true);
+						sp1.getBtnAccept().setEnabled(true);
+						sp2.getBtnAccept().setEnabled(true);
+						bereit.acquire();
+						
+						//2 Fragen 
+						for(int i = 0; i<2; i++) {
+							lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
+							askQ();
+							updateTitle();
+							bereit.acquire();
+						}
+						lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
+						
+						jcbPopup.setSelectedIndex(0);
+						lblCat.setText("Kategorie: " + spiel.selectCat(2)); //Kategorie waehlen
+						
+						//1 Frage der neuen Kategorie
+						askQ();
+						updateTitle();
+						bereit.acquire();
+						//naechste 2 Fragen
+						for(int i = 0; i<2; i++) {
+							lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
+							askQ();
+							updateTitle();
+							bereit.acquire();
+						}
+						lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
+						TimeUnit.SECONDS.sleep(2);
+						runde++;
+						frage = 1;
 					}
 					
 					int z = 1;
 					if(sp1.getSpieler().getPunkte() > sp2.getSpieler().getPunkte())
-						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 1 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 1 gewinnt! Gutes Spiel!<br> Moechtet ihr das Quizfenster schliessen?</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					else if(sp1.getSpieler().getPunkte() < sp2.getSpieler().getPunkte())
-						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 2 gewinnt! Gutes Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Spieler 2 gewinnt! Gutes Spiel!<br> Moechtet ihr das Quizfenster schliessen?</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					else
-						z = JOptionPane.showConfirmDialog(getParent(), "<html>Gleichstand! Was fuer ein Spiel!<br> Wenn du das fenster schliessen moechtest, druecke Ok.</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
+						z = JOptionPane.showConfirmDialog(getParent(), "<html>Gleichstand! Was fuer ein Spiel!<br> Moechtet ihr das Quizfenster schliessen?</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					
 					switch(z) {
 						case 0:
 							dispose();
 							break;
 						default:
-							//changeRdbtnState(1, false);
+							sp1.changeRdbtnState(false);
 							sp1.getBtnAccept().setEnabled(false);
-							changeRdbtnState(2, false);
+							sp2.changeRdbtnState(false);
 							sp2.getBtnAccept().setEnabled(false);
 							break;
 					}
@@ -158,7 +152,7 @@ public class MultiplayerGUI extends JFrame {
 	 */
 	private void askQ() {
 		try {
-			TimeUnit.SECONDS.sleep(3);
+			TimeUnit.SECONDS.sleep(2);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -166,8 +160,8 @@ public class MultiplayerGUI extends JFrame {
 		refreshQ();
 		sp1.getBg().clearSelection();
 		sp2.getBg().clearSelection();
-		changeRdbtnState(1, true);
-		changeRdbtnState(2, true);
+		sp1.changeRdbtnState(true);
+		sp2.changeRdbtnState(true);
 		sp1.getBtnAccept().setEnabled(true);
 		sp2.getBtnAccept().setEnabled(true);
 	}
@@ -178,9 +172,6 @@ public class MultiplayerGUI extends JFrame {
 	 */
 	private void refreshQ() throws NullPointerException{
 		int z = spiel.nextCat();
-		
-		spiel.getHistory().get(spiel.getActKat()).add(z);
-		spiel.setActFrage(spiel.getKeys()[z]);
 		
 		////possible foreach:
 		sp1.setLblFrage("<html><p>" + spiel.getActFrage() + "</p></html>");
@@ -223,6 +214,14 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
+	 * Aktualisiert den Titel, sodass die aktuelle Runde und Fragennummer angezeigt wird
+	 */
+	private void updateTitle() {
+		frame.setTitle("Runde: " + runde + " | Frage: " + frage); 
+		frage++; 
+	}
+	
+	/**
 	 * Initialisiert das Hauptfenster mit den 3 Panels und initialisiert die benutzte Semaphore
 	 */
 	private void initGUI() {
@@ -246,7 +245,7 @@ public class MultiplayerGUI extends JFrame {
 				if (i == 1) {
 					if(!sp1.getSpieler().getAuswahl().equals("")) {
 						sp1.getSpieler().setBereit(true);
-						sp1.getLblStatus().setText("Warte auf Spieler 2");
+						sp1.setLblStatus("Warte auf Spieler 2");
 						sp1.changeRdbtnState(false);
 						sp1.getBtnAccept().setEnabled(false);
 					}
@@ -259,7 +258,7 @@ public class MultiplayerGUI extends JFrame {
 					if(!sp2.getSpieler().getAuswahl().equals("")) {
 						sp2.getSpieler().setBereit(true);
 						sp2.setLblStatus("Warte auf Spieler 1");
-						changeRdbtnState(2, false);
+						sp2.changeRdbtnState(false);
 						sp2.getBtnAccept().setEnabled(false);
 					}
 					else {
@@ -272,16 +271,16 @@ public class MultiplayerGUI extends JFrame {
 					if(sp1.getSpieler().getAuswahl().equals(spiel.getActValues()[4])) {
 						sp1.getSpieler().setPunkte(sp1.getSpieler().getPunkte()+1);
 						lblScore.setText(sp1.getSpieler().getPunkte() + ":" + sp2.getSpieler().getPunkte());
-						sp1.getLblStatus().setText("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
+						sp1.setLblStatus("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp1.getLblStatus().setText("Richtig!");
-					    }, 3, TimeUnit.SECONDS);
+							sp1.setLblStatus("Richtig!");
+					    }, 2, TimeUnit.SECONDS);
 					}
 					else {
-						sp1.getLblStatus().setText("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
+						sp1.setLblStatus("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp1.getLblStatus().setText("Leider falsch!");
-					    }, 3, TimeUnit.SECONDS);
+							sp1.setLblStatus("Leider falsch!");
+					    }, 2, TimeUnit.SECONDS);
 					}
 					if(sp2.getSpieler().getAuswahl().equals(spiel.getActValues()[4])) {
 						sp2.getSpieler().setPunkte(sp2.getSpieler().getPunkte()+1);
@@ -289,13 +288,13 @@ public class MultiplayerGUI extends JFrame {
 						sp2.setLblStatus("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 						executor.schedule(() -> {
 							sp2.setLblStatus("Richtig!");
-					    }, 3, TimeUnit.SECONDS);
+					    }, 2, TimeUnit.SECONDS);
 					}
 					else {
 						sp2.setLblStatus("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 						executor.schedule(() -> {
 							sp2.setLblStatus("Leider falsch!");
-					    }, 3, TimeUnit.SECONDS);
+					    }, 2, TimeUnit.SECONDS);
 					}
 					sp1.getSpieler().setBereit(false);
 					sp2.getSpieler().setBereit(false);

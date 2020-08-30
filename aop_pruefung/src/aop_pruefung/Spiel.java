@@ -17,11 +17,11 @@ public class Spiel {
 	private File actFile;
 	private Map<String, String[]> kategorie = new HashMap<>();
 	private Map<Integer, ArrayList<Integer>> history = new HashMap<>();
-	private int actKat;
+	private int actCat;
 	private String actFrage ="";
 	private Vector<File> dateien = new Vector<File>();
 	private String[] keys;
-	private JComboBox jcbPopup;
+	private JComboBox<File> jcbPopup;
 	
 	public Spiel(Vector<File> dateien) {
 		this.dateien = dateien;
@@ -71,7 +71,7 @@ public class Spiel {
 	}
 	
 	/**
-	 * Öffnet ein Fenster, in dem Spieler {@code i} eine Kategorie auswaehlen soll.
+	 * Öffnet ein Fenster, in dem Spieler {@code i} eine Categorie auswaehlen soll.
 	 * @param i Spielernummer
 	 * @throws StopGameException 
 	 */
@@ -80,16 +80,16 @@ public class Spiel {
 		Boolean approve = false;
 		while(!approve) {
 			if(JOptionPane.showConfirmDialog( null, jcbPopup, "Spieler " + i + ": Bitte waehle eine Kategorie (\"Nein\" beendet das Spiel)", JOptionPane.OK_OPTION) == JOptionPane.OK_OPTION) {
-				actKat = jcbPopup.getSelectedIndex();
-				actFile = dateien.elementAt(actKat);
+				actCat = jcbPopup.getSelectedIndex();
+				actFile = dateien.elementAt(actCat);
 				kategorie.clear();
 				readFile(actFile);
 				if(kategorie.keySet().size()>2) {
 					if(history.keySet().size()>=dateien.size()) {
 						history.clear();
 					}
-					if(!history.containsKey(actKat)) {
-						history.put(actKat, new ArrayList<Integer>());
+					if(!history.containsKey(actCat)) {
+						history.put(actCat, new ArrayList<Integer>());
 					}
 					cat = actFile.getName().replace(".txt", "");
 					keys = kategorie.keySet().toArray(new String[kategorie.size()]);
@@ -118,19 +118,22 @@ public class Spiel {
 	public int nextCat() {
 		int z;
 		Random random = new Random();
-		if(history.get(actKat).size()<kategorie.keySet().size()) { // wenn noch ungenutzte Fragen uebrig
+		if(history.get(actCat).size()<kategorie.keySet().size()) { // wenn noch ungenutzte Fragen uebrig
 			do{
 				z = random.nextInt(keys.length);
-			}while(history.get(actKat).contains(z));
+			}while(history.get(actCat).contains(z));
 		}
 		else {
-			int temp = history.get(actKat).get(history.get(actKat).size()-1); //merke den Index der zuletzt gestellten Frage
-			history.put(actKat, new ArrayList<Integer>());
-			history.get(actKat).add(temp); 
+			int temp = history.get(actCat).get(history.get(actCat).size()-1); //merke den Index der zuletzt gestellten Frage
+			history.put(actCat, new ArrayList<Integer>());
+			history.get(actCat).add(temp); 
 			do{
 				z = random.nextInt(keys.length);
 			}while(z == temp);
 		}
+		
+		history.get(actCat).add(z);
+		actFrage = keys[z];
 		return z;
 	}
 	
@@ -138,17 +141,17 @@ public class Spiel {
 		return kategorie.get(keys[frage])[stelle];
 	}
 	
-	public void clearKat() {
+	public void clearCat() {
 		kategorie.clear();
 	}
 	public String[] getActValues() {
 		return kategorie.get(actFrage);
 	}
-	public void setActKat(int i) {
-		actKat = i;
+	public void setActCat(int i) {
+		actCat = i;
 	}
-	public int getActKat() {
-		return actKat;
+	public int getActCat() {
+		return actCat;
 	}
 	public void setActFile(File i) {
 		actFile = i;
