@@ -4,23 +4,15 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JComboBox;
-import javax.swing.JSplitPane;
 import java.awt.GridLayout;
 import java.awt.Insets;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.ButtonGroup;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,10 +21,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import javax.swing.SwingConstants;
-import javax.swing.JRadioButton;
 
 /**
- * Beherbergt das Fenster fuer den Singleplayermodus.
+ * Beinhaltet das Fenster fuer den Singleplayermodus und den Spielablauf.
  * @author Tom Sosedow
  * 
  */
@@ -51,7 +42,6 @@ public class SingleplayerGUI extends JFrame {
 	private int diff, runde = 1, frage = 1;
 	private String[] diffs = {"Leicht", "Mittel", "Schwer", "Dr. Kawashima"};
 	private JFrame frame = this;
-	private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	private Consumer<Integer> cons;
 	private Spiel spiel;
 	private SpielerPanel sp1, sp2;
@@ -105,10 +95,11 @@ public class SingleplayerGUI extends JFrame {
 						//erste Frage
 						lblStatus.setText("");
 						refreshQ();
-						sp1.getBg().clearSelection();
-						sp2.getBg().clearSelection();
+						sp1.clearSelection();
+						sp2.clearSelection();
 						sp1.changeRdbtnState(true);
-						sp1.getBtnAccept().setEnabled(true);
+						sp1.enableBtnAccept(true);
+						auswahlBot(diff);
 						ready.acquire();
 						
 						//2 Fragen 
@@ -121,7 +112,7 @@ public class SingleplayerGUI extends JFrame {
 						lblStatus.setText("Die Richtige Antwort ist " + spiel.getActValues()[4] + "!");
 						
 						jcbPopup.setSelectedIndex(0);
-						lblCat.setText("Kategorie: " + spiel.auswahlBotCat()); //Kategorie waehlen
+						lblCat.setText("Kategorie: " + spiel.botChooseCat()); //Kategorie waehlen
 						
 						//1 Frage der neuen Kategorie
 						askQ();
@@ -149,20 +140,18 @@ public class SingleplayerGUI extends JFrame {
 					else
 						z = JOptionPane.showConfirmDialog(getParent(), "<html>Gleichstand! Was fuer ein Spiel!<br> Moechtet ihr das Quizfenster schliessen?</html>", "Ergebnis:", JOptionPane.YES_NO_OPTION);
 					
-					switch(z) {
-						case 0:
-							dispose();
-							break;
-						default:
-							sp1.changeRdbtnState(false);
-							sp1.getBtnAccept().setEnabled(false);
-							break;
+					if(z == 0)
+						dispose();
+					else {
+						sp1.changeRdbtnState(false);
+						sp1.enableBtnAccept(false);
 					}
+					
 				} catch (InterruptedException|IllegalArgumentException|NullPointerException e) { 
 					dispose();
 					JOptionPane.showMessageDialog(getParent(), "Ein Fehler ist aufgetreten", "Fehler", JOptionPane.ERROR_MESSAGE);
 				}
-				catch(StopGameException e) {
+				catch(StopAppException e) {
 					dispose();
 					JOptionPane.showMessageDialog(getParent(), e.getMessage(), "Spiel beendet!", JOptionPane.INFORMATION_MESSAGE);
 				}
@@ -184,30 +173,25 @@ public class SingleplayerGUI extends JFrame {
 		sp1.setLblStatus("");
 		sp2.setLblStatus("");
 		refreshQ();
-		sp1.getBg().clearSelection();
-		sp2.getBg().clearSelection();
+		sp1.clearSelection();
+		sp2.clearSelection();
 		sp1.changeRdbtnState(true);
-		sp1.getBtnAccept().setEnabled(true);
+		sp1.enableBtnAccept(true);
 		auswahlBot(diff);
 	}
 	
 	/**
 	 * Waehlt eine zufaellige naechste Frage (die noch nicht gestellt wurde) und zeigt 
 	 * sie mit den Antwortmoeglichkeiten in allen entsprechenden Feldern an
-	 * 
-	 * @throws NullPointerException
-	 * @see MuliplayerGUI
 	 */
-	private void refreshQ() throws NullPointerException{
-		int z = spiel.nextCat();
+	private void refreshQ(){
+		int z = spiel.nextQ();
 		
-		////possible foreach:
 		sp1.setLblFrage("<html><p>" + spiel.getActFrage() + "</p></html>");
 		sp1.setLblAntworten(spiel.getAntwort(z, 0), spiel.getAntwort(z, 1), spiel.getAntwort(z, 2), spiel.getAntwort(z, 3));
 
 		sp2.setLblFrage("<html><p>" + spiel.getActFrage() + "</p></html>");
 		sp2.setLblAntworten(spiel.getAntwort(z, 0), spiel.getAntwort(z, 1), spiel.getAntwort(z, 2), spiel.getAntwort(z, 3));
-		////
 	}
 	
 	/**
@@ -268,9 +252,10 @@ public class SingleplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das Hauptfenster mit den 3 Panels und initialisiert die benutzte 
-	 * Semaphore. Ausserdem wird ein Pop-Up geoeffnet, in dem der Spieler eine Schwierigkeitsstufe waehlen soll.
+	 * Initialisiert das Hauptfenster mit allen zugehoerigen grafischen Elementen. Ausserdem wird ein Pop-Up geoeffnet, 
+	 * in dem der Spieler eine Schwierigkeitsstufe waehlen soll.
 	 * Wird dieses ohne Auswahl geschlossen, wird die schwierigste Stufe gewaehlt.
+	 * Auﬂerdem wird hier die Routine in Form eines Consumers gespeichert, welche ausgefuehrt wird, wenn ein Spieler seine Auswahl bestaetigt.
 	 */
 	private void initGUI() {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -296,19 +281,19 @@ public class SingleplayerGUI extends JFrame {
 				}
 				else {
 					sp1.changeRdbtnState(false);
-					sp1.getBtnAccept().setEnabled(false);
+					sp1.enableBtnAccept(false);
 					if(sp1.getSpieler().getAuswahl().equals(spiel.getActValues()[4])) {
 						sp1.getSpieler().setPunkte(sp1.getSpieler().getPunkte()+1);
 						lblScore.setText(sp1.getSpieler().getPunkte() + ":" + sp2.getSpieler().getPunkte());
 						sp1.setLblStatus("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp1.setLblStatus("Richtig!");
+							sp1.setLblStatus("");
 					    }, 2, TimeUnit.SECONDS);
 					}
 					else {
 						sp1.setLblStatus("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp1.setLblStatus("Leider falsch!");
+							sp1.setLblStatus("");
 					    }, 2, TimeUnit.SECONDS);
 					}
 					if(sp2.getSpieler().getAuswahl().equals(spiel.getActValues()[4])) {
@@ -316,13 +301,13 @@ public class SingleplayerGUI extends JFrame {
 						lblScore.setText(sp1.getSpieler().getPunkte() + ":" + sp2.getSpieler().getPunkte());
 						sp2.setLblStatus("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp2.setLblStatus("Richtig!");
+							sp2.setLblStatus("");
 					    }, 2, TimeUnit.SECONDS);
 					}
 					else {
 						sp2.setLblStatus("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp2.setLblStatus("Leider falsch!");
+							sp2.setLblStatus("");
 					    }, 2, TimeUnit.SECONDS);
 					}
 					sp1.getSpieler().setAuswahl("");
@@ -352,7 +337,7 @@ public class SingleplayerGUI extends JFrame {
 		sp2 = new SpielerPanel(cons);
 		contentPane.add(sp2.getPanel(), gbc_panel3);
 		
-		sp2.getBtnAccept().setEnabled(false);
+		sp2.enableBtnAccept(false);
 		sp2.changeRdbtnState(false);
 	}
 	

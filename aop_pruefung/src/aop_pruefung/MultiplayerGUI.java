@@ -39,7 +39,7 @@ public class MultiplayerGUI extends JFrame {
 	private Semaphore ready = new Semaphore(1, true);
 	private SpielerPanel sp1, sp2;
 	private Spiel spiel;
-	private int spieleranzahl = 2, runde = 1, frage = 1;
+	private int runde = 1, frage = 1;
 	private Consumer<Integer> cons;
 	private JFrame frame = this;
 	
@@ -81,12 +81,12 @@ public class MultiplayerGUI extends JFrame {
 						//erste Frage
 						lblStatus.setText("");
 						refreshQ();
-						sp1.getBg().clearSelection();
-						sp2.getBg().clearSelection();
+						sp1.clearSelection();
+						sp2.clearSelection();
 						sp1.changeRdbtnState(true);
 						sp2.changeRdbtnState(true);
-						sp1.getBtnAccept().setEnabled(true);
-						sp2.getBtnAccept().setEnabled(true);
+						sp1.enableBtnAccept(true);
+						sp2.enableBtnAccept(true);
 						ready.acquire();
 						
 						//2 Fragen 
@@ -132,9 +132,9 @@ public class MultiplayerGUI extends JFrame {
 							break;
 						default:
 							sp1.changeRdbtnState(false);
-							sp1.getBtnAccept().setEnabled(false);
+							sp1.enableBtnAccept(false);
 							sp2.changeRdbtnState(false);
-							sp2.getBtnAccept().setEnabled(false);
+							sp2.enableBtnAccept(false);
 							break;
 					}
 				} catch (InterruptedException|IllegalArgumentException|NullPointerException e) {
@@ -142,7 +142,7 @@ public class MultiplayerGUI extends JFrame {
 					JOptionPane.showMessageDialog(getParent(), "Ein Fehler ist aufgetreten", "Fehler", JOptionPane.ERROR_MESSAGE);
 					dispose();
 				}
-				catch(StopGameException e) {
+				catch(StopAppException e) {
 					dispose();
 					JOptionPane.showMessageDialog(getParent(), e.getMessage(), "Spiel beendet!", JOptionPane.INFORMATION_MESSAGE);
 				}
@@ -162,12 +162,12 @@ public class MultiplayerGUI extends JFrame {
 		}
 		lblStatus.setText("");
 		refreshQ();
-		sp1.getBg().clearSelection();
-		sp2.getBg().clearSelection();
+		sp1.clearSelection();
+		sp2.clearSelection();
 		sp1.changeRdbtnState(true);
 		sp2.changeRdbtnState(true);
-		sp1.getBtnAccept().setEnabled(true);
-		sp2.getBtnAccept().setEnabled(true);
+		sp1.enableBtnAccept(true);
+		sp2.enableBtnAccept(true);
 	}
 	
 	/**
@@ -175,7 +175,7 @@ public class MultiplayerGUI extends JFrame {
 	 * sie mit den Antwortmoeglichkeiten in allen entsprechenden Feldern an
 	 */
 	private void refreshQ() throws NullPointerException{
-		int z = spiel.nextCat();
+		int z = spiel.nextQ();
 		
 		////possible foreach:
 		sp1.setLblFrage("<html><p>" + spiel.getActFrage() + "</p></html>");
@@ -226,7 +226,9 @@ public class MultiplayerGUI extends JFrame {
 	}
 	
 	/**
-	 * Initialisiert das Hauptfenster mit den 3 Panels und initialisiert die benutzte Semaphore
+	 * Initialisiert das Hauptfenster mit allen grafischen Elementen und die benutzte Semaphore.
+	 * Auﬂerdem wird hier die Routine in Form eines Consumers gespeichert, welche ausgefuehrt wird, wenn ein Spieler seine Auswahl bestaetigt.
+	 * HTML-Farbenbefehl von https://www.bitdegree.org/learn/html-color 
 	 */
 	private void initGUI() {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -251,7 +253,7 @@ public class MultiplayerGUI extends JFrame {
 						sp1.getSpieler().setBereit(true);
 						sp1.setLblStatus("Warte auf Spieler 2");
 						sp1.changeRdbtnState(false);
-						sp1.getBtnAccept().setEnabled(false);
+						sp1.enableBtnAccept(false);
 					}
 					else {
 						sp1.setLblStatus("Bitte waehle zuerst eine Antwort!");
@@ -263,7 +265,7 @@ public class MultiplayerGUI extends JFrame {
 						sp2.getSpieler().setBereit(true);
 						sp2.setLblStatus("Warte auf Spieler 1");
 						sp2.changeRdbtnState(false);
-						sp2.getBtnAccept().setEnabled(false);
+						sp2.enableBtnAccept(false);
 					}
 					else {
 						sp2.setLblStatus("Bitte waehle zuerst eine Antwort!");
@@ -277,28 +279,28 @@ public class MultiplayerGUI extends JFrame {
 						lblScore.setText(sp1.getSpieler().getPunkte() + ":" + sp2.getSpieler().getPunkte());
 						sp1.setLblStatus("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp1.setLblStatus("Richtig!");
-					    }, 2, TimeUnit.SECONDS);
+							sp1.setLblStatus("");
+					    }, 3, TimeUnit.SECONDS);
 					}
 					else {
 						sp1.setLblStatus("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp1.setLblStatus("Leider falsch!");
-					    }, 2, TimeUnit.SECONDS);
+							sp1.setLblStatus("");
+					    }, 3, TimeUnit.SECONDS);
 					}
 					if(sp2.getSpieler().getAuswahl().equals(spiel.getActValues()[4])) {
 						sp2.getSpieler().setPunkte(sp2.getSpieler().getPunkte()+1);
 						lblScore.setText(sp1.getSpieler().getPunkte() + ":" + sp2.getSpieler().getPunkte());
 						sp2.setLblStatus("<HTML><BODY BGCOLOR=#4EFF01>Richtig!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp2.setLblStatus("Richtig!");
-					    }, 2, TimeUnit.SECONDS);
+							sp2.setLblStatus("");
+					    }, 3, TimeUnit.SECONDS);
 					}
 					else {
 						sp2.setLblStatus("<HTML><BODY BGCOLOR=#FFCCCC>Leider falsch!</BODY></HTML>");
 						executor.schedule(() -> {
-							sp2.setLblStatus("Leider falsch!");
-					    }, 2, TimeUnit.SECONDS);
+							sp2.setLblStatus("");
+					    }, 3, TimeUnit.SECONDS);
 					}
 					sp1.getSpieler().setBereit(false);
 					sp2.getSpieler().setBereit(false);
@@ -309,7 +311,6 @@ public class MultiplayerGUI extends JFrame {
 			}
 		};
 		gbc_panel1 = new GridBagConstraints();
-		gbc_panel1.insets = new Insets(0, 0, 0, 5);
 		gbc_panel1.fill = GridBagConstraints.BOTH;
 		gbc_panel1.gridx = 0;
 		gbc_panel1.gridy = 0;

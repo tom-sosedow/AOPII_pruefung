@@ -9,6 +9,11 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSplitPane;
 
+	/**
+	 * Blaupause für ein Panel eines Spielers. Ein Panel besitzt alle grafischen Elemente und ist einem Spieler zugeordnet.
+	 * @author tomso
+	 *
+	 */
 public class SpielerPanel extends JPanel{
 	private JPanel panel = new JPanel();
 	private JLabel lblA, lblB, lblC, lblD, lblStatus, lblFrage;
@@ -19,6 +24,10 @@ public class SpielerPanel extends JPanel{
 	private ButtonGroup bg;
 	private Consumer<Integer> cons;
 	
+	/**
+	 * Erstellt ein neues Spielerpanel (JPanel), in dem alle UI Elemente enthalten sind,d ie ein Nutzer zur Interaktion mit dem Programm braucht. 
+	 * @param consumer externe Methode die ausgefuehrt werden soll, wenn der Spieler seine Auswahl bestaetigt.
+	 */
 	public SpielerPanel(Consumer<Integer> consumer) {
 		this.cons = consumer;
 		spieler = new Spieler();
@@ -86,6 +95,13 @@ public class SpielerPanel extends JPanel{
 		bg.add(rdbtnD);
 	}
 	
+	/**
+	 * Setzt den Text der RadioButton A-D.
+	 * @param a Text fuer Antwortmoeglichkeit A
+	 * @param b Text fuer Antwortmoeglichkeit B
+	 * @param c Text fuer Antwortmoeglichkeit C
+	 * @param d Text fuer Antwortmoeglichkeit D
+	 */
 	public void setLblAntworten(String a, String b, String c, String d) {
 		rdbtnA.setText(a);
 		rdbtnB.setText(b);
@@ -93,6 +109,10 @@ public class SpielerPanel extends JPanel{
 		rdbtnD.setText(d);
 	}
 	
+	/**
+	 * Setzt die Antwort des Spielers auf a (A-D). Falls nicht A, B, C oder D gewaehlt wird, wird die aktuelle Auswahl des Spielers geleert.
+	 * @param a auszuwaehlende Antwort (A-D)
+	 */
 	public void setAntwort(String a) {
 		switch(a) {
 		case "A":
@@ -111,6 +131,9 @@ public class SpielerPanel extends JPanel{
 			rdbtnD.setSelected(true);
 			spieler.setAuswahl("D");
 			break;
+		default:
+			spieler.setAuswahl("");
+			break;
 		}
 	}
 	
@@ -125,70 +148,49 @@ public class SpielerPanel extends JPanel{
 		rdbtnD.setEnabled(b);
 	}
 	
+	/**
+	 * Gibt das erstellte Spielerpnael zurueck.
+	 * @return Das erstelle Spielerpanel
+	 */
 	public JPanel getPanel() {
 		return panel;
 	}
-
-	public JLabel getLblA() {
-		return lblA;
-	}
-
-	public void setLblA(String a) {
-		lblA.setText(a);
-	}
-
-	public JLabel getLblB() {
-		return lblB;
-	}
-
-	public void setLblB(String a) {
-		lblB.setText(a);
-	}
-
-	public JLabel getLblC() {
-		return lblC;
-	}
-
-	public void setLblC(String a) {
-		lblC.setText(a);
-	}
-
-	public JLabel getLblD() {
-		return lblD;
-	}
-
-	public void setLblD(String a) {
-		lblD.setText(a);
-	}
-
-	public JLabel getLblStatus() {
-		return lblStatus;
-	}
-
+	
+	/**
+	 * Setzt den Text des Statuslabels.
+	 * @param a neuer Text fuer das Statuslabel
+	 */
 	public void setLblStatus(String a) {
 		lblStatus.setText(a);
 	}
-
-	public JLabel getLblFrage() {
-		return lblFrage;
-	}
-
+	
+	/**
+	 * Setzt den Text des Fragelabels
+	 * @param a neuer Text fuer das Fragelabel
+	 */
 	public void setLblFrage(String a) {
 		lblFrage.setText(a);
 	}
-
-	public JButton getBtnAccept() {
-		return btnAccept;
-	}
-
-	public ButtonGroup getBg() {
-		return bg;
-	}
-
-	public void setBg(ButtonGroup bg) {
-		this.bg = bg;
+	
+	/**
+	 * Aktiviert/Deaktiviert den Bestaetigen-Button des Spielers.
+	 * @param b
+	 */
+	public void enableBtnAccept(Boolean b) {
+		btnAccept.setEnabled(b);
 	}
 	
+	/**
+	 * Leert die Auswahl des Spielers (nur ind er grafischen Oberflaeche).
+	 */
+	public void clearSelection() {
+		bg.clearSelection();
+	}
+	
+	/**
+	 * Gibt den zum Spielerpanel zugeordneten Spieler zurueck.
+	 * @return den zum Spielerpanel zugeordneten Spieler
+	 */
 	public Spieler getSpieler() {
 		return spieler;
 	}

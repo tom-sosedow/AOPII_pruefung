@@ -11,6 +11,8 @@ import javax.swing.JOptionPane;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Vector;
+import java.util.function.Consumer;
+
 import javax.swing.JLabel;
 import java.awt.GridLayout;
 import java.awt.FlowLayout;
@@ -25,7 +27,11 @@ public class MainGUI extends JFrame {
 	private JPanel contentPane, panelBottom, panelTop;
 	private JButton btnEinzelspieler, btnMehrspieler, btnPfad, btnEditor, btnChooseDir, btnInst;
 	private JLabel lblPfad, lblFiles, lblPlatzhalter;
-	
+	private Consumer<Boolean> cons; //accept() dient als Info, dass Dateienvektor geaendert wurde
+	private int size;
+	private MultiplayerGUI multiplayer;
+	private SingleplayerGUI singleplayer;
+	private EditorGUI editor;
 	public static void main(String[] args) {
 		try {
 			MainGUI main = new MainGUI();
@@ -71,14 +77,14 @@ public class MainGUI extends JFrame {
 		btnChooseDir.addActionListener(e-> chooseDir());
 		panelBottom.add(btnChooseDir);
 		
-		lblPfad = new JLabel("");
+		lblPfad = new JLabel("Ordner: ");
 		panelBottom.add(lblPfad);
 		
 		btnPfad = new JButton("Dateien waehlen");
 		btnPfad.addActionListener(e -> chooseFiles());
 		panelBottom.add(btnPfad);
 		
-		lblFiles = new JLabel("");
+		lblFiles = new JLabel("[   ]");
 		panelBottom.add(lblFiles);
 		
 		panelTop = new JPanel();
@@ -91,13 +97,28 @@ public class MainGUI extends JFrame {
 		panelTop.add(btnInst);
 		btnInst.addActionListener(e-> instructions());
 		
+		cons = new Consumer<Boolean>() {
+
+			@Override
+			public void accept(Boolean t) {
+				if(t) {
+					dateien = editor.getDateien();
+					if(!lblFiles.getText().equals("[   ]")) {
+						lblFiles.setText(lblFiles.getText()+ dateien.elementAt(dateien.size()-1) + "; ");
+					}
+				}
+			}
+			
+		};
+		
+		this.setResizable(false);
 	}
 	
 	/**
 	 * Oeffnet das Fenster fuer den Multiplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void multiplayerMode() {
-		MultiplayerGUI multiplayer;
+		
 		if(dateien != null) {
 			multiplayer = new MultiplayerGUI(dateien);
 			multiplayer.setVisible(true);
@@ -113,7 +134,6 @@ public class MainGUI extends JFrame {
 	 * Oeffnet das Fenster fuer den Singleplayermode, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void singleplayerMode() {
-		SingleplayerGUI singleplayer;
 		if(dateien != null) {
 			singleplayer = new SingleplayerGUI(dateien);
 			singleplayer.setVisible(true);
@@ -129,9 +149,8 @@ public class MainGUI extends JFrame {
 	 * Oeffnet das Editorfenster, falls Dateien oder ein Verzeichnis gewaehlt wurden
 	 */
 	private void editorMode() {
-		EditorGUI editor;
 		if(dateien != null) {
-			editor = new EditorGUI(dateien);
+			editor = new EditorGUI(dateien, cons);
 			editor.setVisible(true);
 		}
 		else {
@@ -159,7 +178,8 @@ public class MainGUI extends JFrame {
 				temp2 += a.getName() + "; ";
 			}
 			lblFiles.setText(temp2);
-			lblPfad.setText("");
+			lblPfad.setText("Ordner: ");
+			size = dateien.size();
 		}
 	}
 	
@@ -174,8 +194,8 @@ public class MainGUI extends JFrame {
 	    if(chooser.showOpenDialog(getParent()) == JFileChooser.APPROVE_OPTION) {
 	    	File pfad = chooser.getSelectedFile();
 	    	dateien = new Vector<File>();
-	    	lblPfad.setText("Pfad: " + pfad);
-	    	lblFiles.setText("");
+	    	lblPfad.setText("Ordner: " + pfad);
+	    	lblFiles.setText("[   ]");
 	    	File[] ls = pfad.listFiles(new FileFilter() {
 				public boolean accept(File f) {
 						return f.isFile()&&f.getName().endsWith(".txt");}});
@@ -183,8 +203,10 @@ public class MainGUI extends JFrame {
 			if (ls != null && ls.length != 0) 
 				for(int i = 0; i< ls.length; i++) 
 					dateien.add(ls[i]);
+			
+			size = dateien.size();
 	    }
-	    if(dateien.size()==0) {
+	    if(size==0) {
 	    	dateien = null;
 	    }
 	}
@@ -195,36 +217,36 @@ public class MainGUI extends JFrame {
 	 */
 	private void instructions() {
 		String msg = "<html><h1>Anleitung</h1>\r\n" + 
-				"<p>Zu Beginn musst du deine Kategoriedateien auswaehlen. Bei \"Ordner waehlen\" kannst du einen Ordner waehlen, in dem sich all deine Dateien befinden. Falls du nur bestimmte Kategorien/Dateien in die Datenbank aufnehmen willst, <br>kannst du bei \"Deteien waehlen\" einzelne aussuchen indem du die STRG-Taste gedrueckt haeltst und dann die gewuenschten Dateien auswaehlst.</p>"+
+				"<p>Zu Beginn musst du deine Kategoriedateien auswaehlen. Bei \"Ordner waehlen\" kannst du einen Ordner waehlen, in dem sich all deine Dateien befinden. <br>Falls du nur bestimmte Kategorien/Dateien in die Datenbank aufnehmen willst, "+
+				"kannst du bei \"Dateien waehlen\" <br>einzelne aussuchen indem du die STRG-Taste gedrueckt haeltst und dann die gewuenschten Dateien auswaehlst. <br>Achtung! eine Kategorie muss mindestens 3 Fragen beinhalten!<br></p>"+
 				"<p>Das Programm bietet 3 dann verschiedene Modi:</p>\r\n" + 
 				"<ul>\r\n" + 
 				"    <li><strong>Editormodus</strong>\r\n" + 
 				"        <ul>\r\n" + 
 				"            <li>Hier kannst du deine Kategorien bearbeiten oder neue erstellen.</li>\r\n" + 
-				"            <li>Waehle eine Kategorie in dem Drop-Down Menue aus und waehle eine Frage aus, um sie anschliessend rechts bearbeiten zu koennen. Bist du fertig, druecke auf den Button \"Bestaetigen\".</li>\r\n" + 
-				"            <li>Um eine neue Frage hinzuzufuegen, druecke auf \"Frage hinzufuegen\". Das naechste Mal, wenn du auf \"Bestaetigen\" drueckst, wird die Frage in deine Kategorie aufgenommen.</li>\r\n" + 
+				"            <li>Waehle eine Kategorie in dem Drop-Down Menue aus und waehle eine Frage aus, um sie anschliessend rechts bearbeiten zu koennen. <br>Bist du fertig, druecke auf den Button \"Bestaetigen\".</li>\r\n" + 
+				"            <li>Um eine neue Frage hinzuzufuegen, druecke auf \"Frage hinzufuegen\". <br>Das naechste Mal, wenn du auf \"Bestaetigen\" drueckst, wird die Frage in deine Kategorie aufgenommen.</li>\r\n" + 
 				"            <li>Moechtest du eine Frage entfernen, waehle sie einfach aus und druecke auf \"Frage Loeschen\".</li>\r\n" + 
 				"            <li>Vergiss nicht, am Ende deine Aenderungen an einer Kategorie/Datei zu speichern, in dem du auf \"Datei speichern\" drueckst.</li>\r\n" + 
 				"        </ul>\r\n" + 
 				"    </li>\r\n" + 
 				"    <li><strong>Spielen</strong>\r\n" + 
 				"        <ul>\r\n" + 
-				"            <li>Es werden 3 Runden gespielt. In jeder Runde darf erst der linke Spieler (1), danach der rechte Spieler (2) eine Kategorie waehlen. Pro Kategorie werden nacheinander 3 Fragen gestellt und jede richtige Antwort gibt 1 Punkt. Wer am Ende mehr Punkte hat, gewinnt!</li>\r\n" + 
+				"            <li>Es werden 3 Runden gespielt. In jeder Runde darf erst der linke Spieler (1), danach der rechte Spieler (2) eine Kategorie waehlen. <br>Pro Kategorie werden nacheinander 3 Fragen gestellt und jede richtige Antwort gibt 1 Punkt. Wer am Ende mehr Punkte hat, gewinnt!</li>\r\n" + 
 				"            <li><u>Singleplayer Modus</u>\r\n" + 
 				"                <ul>\r\n" + 
-				"                    <li>Hier spielst du gegen einen Bot. Am Anfang waehlst du aus, wie stark dieser sein soll. Aber pass auf! Falls du nichts auswaehlst, wird die schwierigste Stufe gewaehlt! Der Bot waehlt automatisch seine Fragen und Kategorien und ist immer bereit.</li>\r\n" + 
+				"                    <li>Hier spielst du gegen einen Bot. Am Anfang waehlst du aus, wie stark dieser sein soll. Aber pass auf! <br>Falls du nichts auswaehlst, wird die schwierigste Stufe gewaehlt! Der Bot waehlt automatisch seine Fragen und Kategorien und ist immer bereit.</li>\r\n" + 
 				"                </ul>\r\n" + 
 				"            </li>\r\n" + 
 				"            <li><u>Multiplayer Modus</u>\r\n" + 
 				"                <ul>\r\n" + 
-				"                    <li>Hier trittst du gegen einen echten anderen Spieler an. Wenn ihr beide eure Antwort gewaehlt habt, wird die Loesung praesentiert und die naechste Frage nach kurzer Zeit eingeblendet.</li>\r\n" + 
+				"                    <li>Hier trittst du gegen einen echten anderen Spieler an. Wenn ihr beide eure Antwort gewaehlt habt, <br>wird die Loesung praesentiert und die naechste Frage nach kurzer Zeit eingeblendet.</li>\r\n" + 
 				"                </ul>\r\n" + 
 				"            </li>\r\n" + 
 				"        </ul>\r\n" + 
 				"    </li>\r\n" + 
 				"</ul>\r\n" + 
 				"<p><span style=\"color: rgb(184, 49, 47);\"><strong><u>Viel Spass!</u></strong></p></html>";
-		JLabel message = new JLabel(msg);
-		JOptionPane.showMessageDialog(getParent(), message);
+		JOptionPane.showMessageDialog(getParent(), new JLabel(msg));
 	}
 }

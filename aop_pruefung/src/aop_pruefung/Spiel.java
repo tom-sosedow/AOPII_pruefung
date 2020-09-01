@@ -2,6 +2,7 @@ package aop_pruefung;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,12 @@ import java.util.Vector;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 
+/**
+ * Verwaltet die Daten ueber das Spiel, also alle Kategorien, den Verlauf von Kategorien und Fragen und die aktuellen Zustaende
+ * 
+ * @author Tom Sosedow
+ *
+ */
 public class Spiel {
 	
 	private File actFile;
@@ -19,7 +26,7 @@ public class Spiel {
 	private Map<Integer, ArrayList<Integer>> history = new HashMap<>();
 	private int actCat;
 	private String actFrage ="";
-	private Vector<File> dateien = new Vector<File>();
+	private Vector<File> dateien = new Vector<File>(); //Dateienverzeichnis
 	private String[] keys;
 	private JComboBox<File> jcbPopup;
 	private Random random = new Random();
@@ -30,7 +37,7 @@ public class Spiel {
 	}
 	
 	/**
-	 * Liest die Datei {@code datei} ein und gibt Erfolg/Misserfolg zurueck
+	 * Liest die Datei {@code datei} ein und gibt Misserfolg zurueck, falls bspw. ein Fehler im Format auftritt.
 	 * 
 	 * @see EditorGUI
 	 * @param datei einzulesende Datei
@@ -38,7 +45,7 @@ public class Spiel {
 	 */
 	public boolean readFile(File datei) {		
 	    try {
-			Scanner scanner = new Scanner(datei);
+	    	Scanner scanner = new Scanner(datei);
 			int i = 1;
 			String frage = "";
 			String[] antworten = new String[5];
@@ -47,10 +54,16 @@ public class Spiel {
 					frage = scanner.nextLine();
 				}
 				else if (i%7 == 0) {
-					scanner.nextLine();
+					if(!scanner.nextLine().isBlank()) {
+						scanner.close();
+						return false; //Fehler im Format
+					}
 				}
 				else if( (i-1)%7== 0) {
-					kategorie.put(frage, antworten);
+					if(!frage.isBlank()) {
+						antworten[4] = conversion(antworten[4].replace(" ", ""));
+						kategorie.put(frage, antworten);
+					}
 					antworten = new String[5];
 					frage = scanner.nextLine();
 				}
@@ -59,24 +72,42 @@ public class Spiel {
 				}
 				i++;
 			}
-			if(i!=1)
+			if(i!=1 && !frage.isBlank()) {
+				antworten[4] = conversion(antworten[4]);
 				kategorie.put(frage, antworten);
-			
+			}
 			scanner.close();
 			return true;
 			
 		}
-		catch(FileNotFoundException|NullPointerException e){
+		catch(NullPointerException|IOException e){
 			return false;
 		}
 	}
 	
+	private String conversion(String a) throws IOException {
+		String text = null;
+		if(a.equals("1") || a.equals("A"))
+			text = "A";
+		else if(a.equals("2") || a.equals("B"))
+			text = "B";
+		else if(a.equals("3") || a.equals("C"))
+			text = "C";
+		else if(a.equals("4") || a.equals("D"))
+			text = "D";
+		
+		if(text != null)
+			return text;
+		else
+			throw new IOException("Falsche Kennzeichnung der richtigen Antworten");
+	}
+	
 	/**
-	 * Öffnet ein Fenster, in dem Spieler {@code i} eine Categorie auswaehlen soll.
+	 * Oeffnet ein Fenster, in dem Spieler {@code i} eine Kategorie auswaehlen soll.
 	 * @param i Spielernummer
-	 * @throws StopGameException 
+	 * @throws StopAppException 
 	 */
-	public String selectCat(int i) throws StopGameException {
+	public String selectCat(int i) throws StopAppException {
 		String cat ="";
 		Boolean approve = false;
 		while(!approve) {
@@ -101,7 +132,7 @@ public class Spiel {
 				}
 			}
 			else {
-				throw new StopGameException("Keine Kategorie gewaehlt!");
+				throw new StopAppException("Keine Kategorie gewaehlt!");
 			}
 		}
 		return cat;
@@ -111,7 +142,7 @@ public class Spiel {
 	 * Der Bot waehlt eine Kategorie, die vorher noch nicht dran war. Falls schon alle verfuegbaren dran waren, wird das Merkblatt geloescht
 	 * und die naechste Kategorie zum neuen merkblatt hinzugefuegt
 	 */
-	public String auswahlBotCat() {
+	public String botChooseCat() {
 		Boolean approve = false;
 		String cat = "";
 		while(!approve) {
@@ -136,21 +167,15 @@ public class Spiel {
 				history.put(actCat, new ArrayList<Integer>()); //verhindern einer Endlosschleife
 			}
 		}
+		JOptionPane.showMessageDialog(null, "Der Bot hat die Kategorie " + cat + " gewaehlt!");
 		return cat;
 	}
 	
-	
-	
-	//Getter und Setter
-	public String[] getArr() {
-		String[] array = new String[dateien.size()];
-		for(int i = 0; i< dateien.size(); i++) {
-			array[i] = dateien.elementAt(i).getName().replace(".txt", "");		
-		}
-		return array;
-	}
-	
-	public int nextCat() {
+	/**
+	 * Waehlt eine neue, zufaellige Frage, die vorher noch nicht dran war, und speichert deren Index in den Verlauf der Kategorie.
+	 * @return Index der Frage in der Fragenliste.
+	 */
+	public int nextQ() {
 		int z;
 		Random random = new Random();
 		if(history.get(actCat).size()<kategorie.keySet().size()) { // wenn noch ungenutzte Fragen uebrig
@@ -172,67 +197,36 @@ public class Spiel {
 		return z;
 	}
 	
+	/**
+	 * Leert die aktuelle Kategorie.
+	 */
+	public void clearCat() {
+		kategorie.clear();
+	}
+	//Getter und Setter	
+	//Setter fuer Label setzen den Text des Labels, nicht das gesamte Label
+	
+	/**
+	 * Gibt die Antwort zu einer beliebigen Frage der aktuellen Kategorie aus.
+	 * @param frage Frage zu welcher die Antworten gewuenscht sind.
+	 * @param stelle Stelle der gewuenschten Antwort. 0-3 sind Antworten A-D, 4 ist der Buchstabe der Loesung
+	 * @return Antwort zur Frage an der Stelle
+	 */
 	public String getAntwort(int frage, int stelle) {
 		return kategorie.get(keys[frage])[stelle];
 	}
 	
-	public void clearCat() {
-		kategorie.clear();
-	}
+	/**
+	 * @return Die 4 Antwortmoeglichkeiten zur aktuellen Frage (Stellen 0-3) plus die richtige Antwort (Stelle 4) in einem String-Array
+	 */
 	public String[] getActValues() {
 		return kategorie.get(actFrage);
 	}
-	public void setActCat(int i) {
-		actCat = i;
-	}
-	public int getActCat() {
-		return actCat;
-	}
-	public void setActFile(File i) {
-		actFile = i;
-	}
-
-	public Map<Integer, ArrayList<Integer>> getHistory() {
-		return history;
-	}
-
-	public void setHistory(Map<Integer, ArrayList<Integer>> history) {
-		this.history = history;
-	}
 	
+	/**
+	 * @return Die aktuelle Frage
+	 */
 	public String getActFrage() {
 		return actFrage;
-	}
-
-	public void setActFrage(String actFrage) {
-		this.actFrage = actFrage;
-	}
-
-	public Vector<File> getDateien() {
-		return dateien;
-	}
-
-	public void setDateien(Vector<File> dateien) {
-		this.dateien = dateien;
-	}
-
-	public File getActFile() {
-		return actFile;
-	}
-
-	public Map<String, String[]> getKategorie() {
-		return kategorie;
-	}
-
-	public void setKategorie(Map<String, String[]> kategorie) {
-		this.kategorie = kategorie;
-	}
-
-	public String[] getKeys() {
-		return keys;
-	}
-
-	public void setKeys(String[] keys) {
-		this.keys = keys;
 	}
 }
